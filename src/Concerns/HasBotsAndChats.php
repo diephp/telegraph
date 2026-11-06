@@ -68,11 +68,12 @@ trait HasBotsAndChats
     {
         $bot = $this->getBot();
 
-        if ($bot instanceof TelegraphBot) {
-            return $bot->token;
+        $token = $bot instanceof TelegraphBot ? $bot->token : $bot;
+        if (!preg_match('/^[a-zA-Z0-9:_-]+$/D', $token)) {
+            throw TelegraphException::invalidBotToken();
         }
 
-        return $bot;
+        return $token;
     }
 
     protected function getChatIfAvailable(): TelegraphChat|string|null
@@ -85,10 +86,6 @@ trait HasBotsAndChats
             if ($bot instanceof TelegraphBot) {
                 $telegraph->chat = rescue(fn () => $bot->chats()->sole(), report: false);
             }
-        }
-
-        if (empty($telegraph->chat)) {
-            $telegraph->chat = rescue(fn () => TelegraphChat::query()->sole(), report: false);
         }
 
         return $telegraph->chat ?? null;
@@ -112,7 +109,7 @@ trait HasBotsAndChats
 
     protected function syncChatIdData(): void
     {
-        $chat = $this->getChatIfAvailable();
+        $chat = $this->chat;
 
         if ($chat === null) {
             return;

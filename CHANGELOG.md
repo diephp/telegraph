@@ -2,6 +2,36 @@
 
 All notable changes to `telegraph` will be documented in this file.
 
+## 2.0.0 - Unreleased
+
+First independent release of the simplified `diephp/telegraph` fork. Entries below
+this section describe the upstream `defstudio/telegraph` history.
+
+### Changed
+
+- Publish under `diephp/telegraph`, preserving the `DefStudio\Telegraph` namespace.
+- Support Laravel 12.69+/13.30+ and PHP 8.3, 8.4 and 8.5.
+- Compose reusable text messages before selecting a bot or recipient.
+- Resolve implicit chats only within the selected bot.
+- Require a configured webhook secret for incoming requests and registration.
+- Require handlers to explicitly declare remotely callable `$allowedActions`.
+- Reset request state when a handler is reused by a long-lived worker.
+- Hide bot tokens during model serialization and redact transport/console diagnostics.
+- Reject URL components in API method names and disable API redirects.
+- Escape storage metadata in ordinary arrays and validate hydrated model classes.
+- Encode file-storage keys so they cannot traverse directories.
+- Update dependencies and add Laravel 12/13, PHP 8.3-8.5 CI coverage.
+
+### Removed
+
+- Payments, Stars, games, polls, inline query handlers and their DTOs.
+- Media/file transfers, reply keyboard builders and Telegram Business support.
+- Chat administration, forum management, reactions and long polling.
+- The built-in dispatch job; applications should queue their own notification service.
+- Unused Ray/X-Ray development dependencies and workflows.
+
+This is a breaking release. See README.md for migration and publishing instructions.
+
 ## v1.70.1 - 2026-02-25
 
 ### What's Changed

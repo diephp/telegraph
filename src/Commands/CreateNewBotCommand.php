@@ -20,7 +20,7 @@ class CreateNewBotCommand extends Command
     {
         $this->info(__('telegraph::commands.new_bot.starting_message'));
 
-        $token = $this->ask(__('telegraph::commands.new_bot.enter_bot_token'));
+        $token = $this->secret(__('telegraph::commands.new_bot.enter_bot_token'));
         if (empty($token)) {
             $this->error(__('telegraph::errors.empty_token'));
 

@@ -16,6 +16,11 @@ use Illuminate\Support\Stringable;
 
 class TestWebhookHandler extends WebhookHandler
 {
+    protected array $allowedActions = [
+        'test', 'trigger_failure', 'send_reply', 'change_keyboard', 'delete_keyboard',
+        'hello', 'param_injection', 'reply_to_command', 'private_action',
+    ];
+
     public static bool $handleUnknownCommands = false;
 
     public static int $calls_count = 0;

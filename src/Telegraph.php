@@ -15,6 +15,7 @@ use DefStudio\Telegraph\Concerns\InteractsWithCommands;
 use DefStudio\Telegraph\Concerns\InteractsWithTelegram;
 use DefStudio\Telegraph\Concerns\InteractsWithWebhooks;
 use DefStudio\Telegraph\Concerns\ManagesKeyboards;
+use DefStudio\Telegraph\Exceptions\TelegraphException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\Conditionable;
 
@@ -97,9 +98,14 @@ class Telegraph
 
     public function withEndpoint(string $endpoint): static
     {
+        $endpoint = ltrim($endpoint, '/');
+        if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_-]*$/D', $endpoint)) {
+            throw TelegraphException::invalidEndpoint();
+        }
+
         $telegraph = clone $this;
 
-        $telegraph->endpoint = ltrim($endpoint, '/');
+        $telegraph->endpoint = $endpoint;
 
         return $telegraph;
     }

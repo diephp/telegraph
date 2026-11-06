@@ -4,8 +4,10 @@
 
 namespace DefStudio\Telegraph\Concerns;
 
+use DefStudio\Telegraph\Exceptions\TelegraphException;
 use DefStudio\Telegraph\Models\Concerns\HasCustomUrl;
 use DefStudio\Telegraph\Telegraph;
+use Illuminate\Http\Client\HttpClientException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -24,15 +26,19 @@ trait InteractsWithTelegram
 
     protected function sendRequestToTelegram(): Response
     {
-        $request = Http::asJson();
+        $request = Http::asJson()->withoutRedirecting();
 
         // Apply proxy configuration if set
         if ($proxy = $this->getHttpProxy()) {
             $request->withOptions(['proxy' => $proxy]);
         }
 
-        /** @phpstan-ignore-next-line */
-        return $request->timeout(config('telegraph.http_timeout', 30))->connectTimeout(config('telegraph.http_connection_timeout', 10))->post($this->getApiUrl(), $this->prepareData());
+        try {
+            /** @phpstan-ignore-next-line */
+            return $request->timeout(config('telegraph.http_timeout', 30))->connectTimeout(config('telegraph.http_connection_timeout', 10))->post($this->getApiUrl(), $this->prepareData());
+        } catch (HttpClientException $exception) {
+            throw new TelegraphException(str_replace($this->getBotToken(), '[redacted]', $exception->getMessage()));
+        }
     }
 
     /**
@@ -113,6 +119,11 @@ trait InteractsWithTelegram
         return Str::of($url)
             ->append('/', $this->endpoint)
             ->toString();
+    }
+
+    public function getSafeApiUrl(): string
+    {
+        return str_replace($this->getBotToken(), '[redacted]', $this->getApiUrl());
     }
 
     /**

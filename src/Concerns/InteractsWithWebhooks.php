@@ -5,6 +5,7 @@
 namespace DefStudio\Telegraph\Concerns;
 
 use DefStudio\Telegraph\Exceptions\TelegramWebhookException;
+use DefStudio\Telegraph\Exceptions\TelegraphException;
 use DefStudio\Telegraph\Telegraph;
 
 /**
@@ -41,6 +42,11 @@ trait InteractsWithWebhooks
      */
     public function registerWebhook(?bool $dropPendingUpdates = null, ?int $maxConnections = null, ?string $secretToken = null, ?array $allowedUpdates = null): Telegraph
     {
+        $secretToken ??= config('telegraph.webhook.secret_token') ?? config('telegraph.webhook.secret');
+        if (!is_string($secretToken) || !preg_match('/^[a-zA-Z0-9_-]{1,256}$/D', $secretToken)) {
+            throw TelegraphException::missingWebhookSecret();
+        }
+
         $telegraph = clone $this;
 
         $telegraph->endpoint = self::ENDPOINT_SET_WEBHOOK;
@@ -50,9 +56,9 @@ trait InteractsWithWebhooks
             'url' => $this->getWebhookUrl(),
             'drop_pending_updates' => $dropPendingUpdates,
             'max_connections' => $maxConnections ?? config('telegraph.webhook.max_connections'),
-            'secret_token' => $secretToken ?? config('telegraph.webhook.secret_token') ?? config('telegraph.webhook.secret'),
+            'secret_token' => $secretToken,
             'allowed_updates' => $allowedUpdates ?? config('telegraph.webhook.allowed_updates'),
-        ])->filter()
+        ])->filter(fn ($value) => $value !== null)
             ->toArray();
 
         return $telegraph;

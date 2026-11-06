@@ -30,6 +30,7 @@ class TestCase extends Orchestra
 
     public function defineEnvironment($app): void
     {
+        $app['config']->set('telegraph.webhook.secret', 'test-secret');
         $app['config']->set('database.default', 'testing');
 
         $this->filesystemSetup($app['config']);

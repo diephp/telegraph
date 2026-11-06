@@ -3,7 +3,8 @@
     "payload": {
         "url": "https:\/\/testbot.defstudio.dev\/telegraph\/3f3814e1-5836-3d77-904e-60f64b15df36\/webhook",
         "drop_pending_updates": true,
-        "max_connections": 40
+        "max_connections": 40,
+        "secret_token": "test-secret"
     },
     "files": []
 }

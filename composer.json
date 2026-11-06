@@ -1,8 +1,8 @@
 {
-    "name": "defstudio/telegraph",
+    "name": "diephp/telegraph",
     "description": "Focused Laravel Telegram integration for Restsify notifications and bot callbacks",
     "keywords": [
-        "defstudio",
+        "telegram",
         "laravel",
         "telegraph"
     ],
@@ -16,28 +16,34 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "illuminate/support": "^10.0 | ^11.0 | ^12.0",
-        "illuminate/contracts": "^10.0 | ^11.0 | ^12.0",
-        "illuminate/http": "^10.0 | ^11.0 | ^12.0"
+        "php": "^8.3",
+        "guzzlehttp/guzzle": "^7.15.2",
+        "guzzlehttp/psr7": "^2.12.3",
+        "illuminate/contracts": "^12.69 | ^13.30",
+        "illuminate/database": "^12.69 | ^13.30",
+        "illuminate/http": "^12.69 | ^13.30",
+        "illuminate/support": "^12.69 | ^13.30"
     },
     "require-dev": {
         "ext-sqlite3": "*",
-        "defstudio/pest-plugin-laravel-expectations": "^2.1.2",
-        "friendsofphp/php-cs-fixer": "^3.13.0",
-        "guzzlehttp/guzzle": "^7.5.0",
-        "nunomaduro/collision": "^7.10.0 | ^8.1.1",
-        "larastan/larastan": "^1.0.4 | ^2.4.0 | ^3.1.0",
-        "orchestra/testbench": "^8.0 | ^9.0 | ^10.0",
-        "pestphp/pest": "^2.34.2 | ^3.7.4 | ^4.1.0",
-        "pestphp/pest-plugin-laravel": "^2.3.0 | ^3.1.0",
+        "defstudio/pest-plugin-laravel-expectations": "^2.6.2",
+        "friendsofphp/php-cs-fixer": "^3.94",
+        "larastan/larastan": "^3.14",
+        "orchestra/testbench": "^10.9 | ^11.3",
+        "pestphp/pest": "^4.4.1",
+        "pestphp/pest-plugin-laravel": "^4.1",
         "phpstan/extension-installer": "^1.2.0",
-        "phpstan/phpstan-deprecation-rules": "^1.0.0 | ^2.0.1",
-        "phpstan/phpstan-phpunit": "^1.2.2 | ^2.0.4",
-        "spatie/laravel-ray": "^1.31.0",
-        "spatie/pest-plugin-snapshots": "^2.1.0",
-        "spatie/pest-plugin-test-time": "^2.1.0",
-        "spatie/x-ray": "dev-main"
+        "phpstan/phpstan-deprecation-rules": "^2.0.1",
+        "phpstan/phpstan-phpunit": "^2.0.4",
+        "spatie/pest-plugin-snapshots": "^2.1.0"
+    },
+    "conflict": {
+        "defstudio/telegraph": "*",
+        "symfony/http-foundation": "<7.4.23 || >=8.0,<8.1.11"
+    },
+    "support": {
+        "issues": "https://github.com/diephp/telegraph/issues",
+        "source": "https://github.com/diephp/telegraph"
     },
     "autoload": {
         "psr-4": {
@@ -51,19 +57,17 @@
         }
     },
     "scripts": {
-        "x-ray": "vendor/bin/x-ray .",
-        "lint": "set PHP_CS_FIXER_IGNORE_ENV=1 && php vendor/bin/php-cs-fixer fix -v",
-        "test:lint": "set PHP_CS_FIXER_IGNORE_ENV=1 && php vendor/bin/php-cs-fixer fix -v --dry-run",
+        "lint": "@php vendor/bin/php-cs-fixer fix -v",
+        "test:lint": "@php vendor/bin/php-cs-fixer fix -v --dry-run --diff",
         "test:types": "vendor/bin/phpstan analyse --ansi --memory-limit=-1",
-        "test:unit": "vendor/bin/pest --colors=always",
+        "test:unit": "@php vendor/bin/pest --colors=always --no-coverage",
         "test": [
             "@test:lint",
             "@test:types",
-            "@test:unit",
-            "@x-ray"
+            "@test:unit"
         ],
         "update:snapshots": "vendor/bin/pest --colors=always -d --update-snapshots",
-        "coverage": "@test:unit --coverage"
+        "coverage": "@php vendor/bin/pest --coverage"
     },
     "config": {
         "sort-packages": true,
@@ -82,6 +86,6 @@
             }
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }

@@ -9,7 +9,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Carbon;
 
 /**
- * @implements Arrayable<string, string|int|array<string, mixed>>
+ * @implements Arrayable<string, string|int|bool|array<string, mixed>>
  */
 class ChatMemberUpdate implements Arrayable
 {

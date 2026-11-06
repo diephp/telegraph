@@ -40,7 +40,7 @@ class SetTelegramWebhookCommand extends Command
         /* @phpstan-ignore-next-line  */
         $telegraph = $bot->registerWebhook($dropPendingUpdates, $maxConnections, $secret);
 
-        $this->info(__('telegraph::commands.set_webhook.sending_setup_request', ['api_url' => $telegraph->getApiUrl()]));
+        $this->info(__('telegraph::commands.set_webhook.sending_setup_request', ['api_url' => $telegraph->getSafeApiUrl()]));
 
         $reponse = $telegraph->send();
 

@@ -32,7 +32,7 @@ class UnsetTelegramWebhookCommand extends Command
 
         $telegraph = $bot->unregisterWebhook($this->hasOption('drop-pending-updates'));
 
-        $this->info(__('telegraph::commands.unset_webhook.sending_unset_request', ['api_url' => $telegraph->getApiUrl()]));
+        $this->info(__('telegraph::commands.unset_webhook.sending_unset_request', ['api_url' => $telegraph->getSafeApiUrl()]));
 
         $reponse = $telegraph->send();
 

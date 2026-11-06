@@ -16,7 +16,6 @@ trait BuildsFromTelegraphClass
 
         foreach ($properties as $property) {
             $propertyName = $property->name;
-            $property->setAccessible(true);
 
             if ($property->isInitialized($telegraph)) {
                 $newInstance->$propertyName = $property->getValue($telegraph);

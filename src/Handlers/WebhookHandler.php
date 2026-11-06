@@ -30,10 +30,13 @@ use Throwable;
 abstract class WebhookHandler
 {
     protected TelegraphBot $bot;
-    protected TelegraphChat $chat;
+    protected ?TelegraphChat $chat = null;
 
-    protected int $messageId;
-    protected int|string $callbackQueryId;
+    /** @var list<string> Methods that may be called by commands and callback data. */
+    protected array $allowedActions = [];
+
+    protected int $messageId = 0;
+    protected int|string|null $callbackQueryId = null;
 
     protected Request $request;
     protected ?Message $message = null;
@@ -55,6 +58,16 @@ abstract class WebhookHandler
 
     public function handle(Request $request, TelegraphBot $bot): void
     {
+        $this->chat = null;
+        $this->messageId = 0;
+        $this->callbackQueryId = null;
+        $this->message = null;
+        $this->callbackQuery = null;
+        $this->myChatMember = null;
+        $this->chatMember = null;
+        $this->data = Collection::empty();
+        $this->originalKeyboard = Keyboard::make();
+
         try {
             $this->bot = $bot;
             $this->request = $request;
@@ -292,7 +305,9 @@ abstract class WebhookHandler
 
     protected function canHandle(string $action): bool
     {
-        if ($action === 'handle') {
+        if (!in_array($action, $this->allowedActions, true)
+            || !preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/D', $action)
+            || $action === 'handle') {
             return false;
         }
 
@@ -301,7 +316,7 @@ abstract class WebhookHandler
         }
 
         $reflector = new ReflectionMethod($this::class, $action);
-        if (!$reflector->isPublic()) {
+        if (!$reflector->isPublic() || $reflector->isStatic() || $reflector->isConstructor() || $reflector->isDestructor()) {
             return false;
         }
 
@@ -315,7 +330,7 @@ abstract class WebhookHandler
                 report(TelegramWebhookException::invalidCommand($this->parseCommand($text)[0]));
             }
 
-            $this->chat->html(__('telegraph::errors.invalid_command'))->send();
+            $this->chat?->html(__('telegraph::errors.invalid_command'))->send();
         }
     }
 
@@ -379,20 +394,21 @@ abstract class WebhookHandler
 
     protected function handleMigrateToChat(): void
     {
-        /** @phpstan-ignore-next-line */
-        $this->chat->chat_id = $this->message->migrateToChatId();
-        $this->chat->save();
+        $chat = $this->chat ?? throw TelegramWebhookException::invalidData('chat missing');
+        $message = $this->message ?? throw TelegramWebhookException::invalidData('message missing');
+        $chat->chat_id = $message->migrateToChatId() ?? throw TelegramWebhookException::invalidData('migration chat id missing');
+        $chat->save();
     }
 
     //---- Helpers
     protected function replaceKeyboard(Keyboard $newKeyboard): void
     {
-        $this->chat->replaceKeyboard($this->messageId, $newKeyboard)->send();
+        $this->chat?->replaceKeyboard($this->messageId, $newKeyboard)->send();
     }
 
     protected function deleteKeyboard(): void
     {
-        $this->chat->deleteKeyboard($this->messageId)->send();
+        $this->chat?->deleteKeyboard($this->messageId)->send();
     }
 
     protected function reply(string $message, bool $showAlert = false): void
@@ -403,11 +419,11 @@ abstract class WebhookHandler
             return;
         }
 
-        $this->chat->message($message)->send();
+        $this->chat?->message($message)->send();
     }
 
     public function chatid(): void
     {
-        $this->chat->html("Chat ID: {$this->chat->chat_id}")->send();
+        $this->chat?->html("Chat ID: {$this->chat->chat_id}")->send();
     }
 }

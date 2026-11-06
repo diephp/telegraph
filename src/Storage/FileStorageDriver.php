@@ -22,7 +22,7 @@ class FileStorageDriver extends StorageDriver
     {
         $this->file = (string) Str::of($configuration['root'])
             ->append('/', class_basename($itemClass))
-            ->append("/", $itemKey, '.json');
+            ->append("/", rawurlencode($itemKey), '.json');
 
         $this->disk = Storage::disk($configuration['disk'] ?? null);
     }

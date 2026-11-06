@@ -250,7 +250,7 @@ trait InteractWithPrivileges
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, bool>
      */
     public function privilegesToArray(): array
     {

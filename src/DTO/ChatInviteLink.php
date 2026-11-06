@@ -149,7 +149,7 @@ class ChatInviteLink implements Arrayable
             'is_primary' => $this->isPrimary,
             'is_revoked' => $this->isRevoked,
             'name' => $this->name,
-            'expire_date' => $this->expireDate?->timestamp,
+            'expire_date' => $this->expireDate?->getTimestamp(),
             'member_limit' => $this->memberLimit,
             'pending_join_requests_count' => $this->pendingJoinRequestsCount,
             'subscription_period' => $this->subscriptionPeriod,

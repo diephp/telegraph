@@ -1,69 +1,169 @@
-# Telegraph for Restsify
+# Telegraph, Simplified
 
-A focused fork of [defstudio/telegraph](https://github.com/defstudio/telegraph), maintained at [diephp/telegraph](https://github.com/diephp/telegraph).
+**Next release: 2.0.0** | Composer: `diephp/telegraph` | PHP 8.3-8.5 | Laravel 12/13
 
-The Composer package name and PHP namespace remain `defstudio/telegraph` and `DefStudio\\Telegraph` so existing Restsify integrations continue to resolve them.
+An independent, simplified fork of [defstudio/telegraph](https://github.com/defstudio/telegraph), maintained at [diephp/telegraph](https://github.com/diephp/telegraph). Built for Restsify order notifications and interactive bot conversations.
 
-## Supported Features
+The PHP namespace remains `DefStudio\Telegraph`. The Composer package name is different, and the removed upstream features are intentionally unsupported.
 
-- Reusable HTML/Markdown message builders with deferred bot and chat assignment.
-- Sending, editing, replying, deleting, forwarding, copying and pinning text messages.
-- Inline keyboards, callback actions with parameters, keyboard replacement and removal.
-- Forum topic destinations through `inThread()`.
-- Webhook commands, callbacks, bot membership changes and chat migration.
-- Bot/chat models, model storage, webhook setup and diagnostic Artisan commands.
-- HTTP response inspection and test fakes.
+## Differences From the Original
 
-Payments, games, polls, inline query handlers, media/file transfers, reply keyboard builders, chat administration, forum management, Telegram Business, reactions, long polling and the built-in dispatch job have been removed. This fork is not a drop-in replacement for applications using those upstream features. Unsupported update types are ignored.
+| Area | This fork |
+| --- | --- |
+| Scope | Text notifications, inline buttons, commands and callback conversations |
+| Message builder | Compose first; select bot/chat later, immediately before sending |
+| Reuse | Send the same prepared text message to independent recipients through different bots |
+| Destination lookup | Implicit chat selection is limited to the selected bot |
+| Webhook authentication | A configured secret is required; missing configuration fails closed |
+| Action dispatch | Only methods listed in the handler's $allowedActions are remotely callable |
+| Worker reuse | Request/callback context is reset between updates |
+| Dependencies | Laravel-native provider; no laravel-package-tools dependency |
+| Removed APIs | Payments, games, polls, media, chat administration and other unused modules |
+
+This changes the lifecycle of the existing fluent builder; it is not a complete rewrite of Telegraph. The original `html()`, `keyboard()`, `bot()`, `chat()` and `send()` API remains familiar.
+
+## Requirements
+
+| Framework | PHP |
+| --- | --- |
+| Laravel 12.69+ | 8.3, 8.4, 8.5 |
+| Laravel 13.30+ | 8.3, 8.4, 8.5 |
+
+Use current patched PHP builds. As of 2026-11-06, the October PHP security fixes require 8.3.36+, 8.4.27+ or 8.5.12+, or an equivalent distribution backport. Composer's PHP constraint specifies language compatibility and cannot verify distribution backports.
+
+CI covers both Laravel branches on PHP 8.3, 8.4 and 8.5. See the workflow results for the status of each combination.
 
 ## Installation
 
-Configure a Composer VCS repository pointing to `https://github.com/diephp/telegraph.git` and require the desired fork branch or tag as `defstudio/telegraph`.
-
-For a new installation:
+After the first release is published on Packagist:
 
 ```bash
+composer require diephp/telegraph:^2.0
 php artisan vendor:publish --tag=telegraph-config
 php artisan vendor:publish --tag=telegraph-migrations
 php artisan migrate
 ```
 
-Existing applications with custom models and migrations can keep their own schema and configuration.
+Until publication, configure a Composer VCS repository for `https://github.com/diephp/telegraph.git` and require `diephp/telegraph:dev-main`.
 
-## Reusable Messages
+Laravel discovers the provider automatically. Existing applications with custom models/migrations should retain their schema instead of publishing duplicate migrations.
+
+## Compose Once, Send Later
+
+A message-producing service does not need to know its recipients:
 
 ```php
-use DefStudio\\Telegraph\\Facades\\Telegraph;
-use DefStudio\\Telegraph\\Keyboard\\Button;
-use DefStudio\\Telegraph\\Keyboard\\Keyboard;
+use DefStudio\Telegraph\Facades\Telegraph;
+use DefStudio\Telegraph\Keyboard\Button;
+use DefStudio\Telegraph\Keyboard\Keyboard;
 
 $message = Telegraph::html('<b>Order #42</b>')
     ->keyboard(Keyboard::make()->row([
-        Button::make('Accept')->action('accept_order')->param('order_id', 42),
+        Button::make('Accept')
+            ->action('accept_order')
+            ->param('order_id', 42),
+        Button::make('View')->url('https://example.com/orders/42'),
     ]))
     ->withoutPreview();
 
-$message->bot($firstBot)->chat($firstChatId)->send();
+$response = $message->bot($firstBot)->chat($firstChatId)->send();
 $message->bot($secondBot)->chat($secondChatId)->send();
+
+if ($response->telegraphError()) {
+    // Handle Telegram's rejection.
+}
+
+$messageId = $response->telegraphMessageId();
 ```
 
-Use `send()` to inspect `telegraphError()` and obtain `telegraphMessageId()`. Applications can queue their notification service while keeping access to the Telegram response.
+Fluent Telegraph methods return clones. Assigning a recipient does not modify the prepared text builder. Missing bot/chat context is rejected before the HTTP request. A sole configured bot/chat may still be inferred at send time.
 
-## Webhook Authentication
+## Retained Functionality
 
-Set `TELEGRAPH_WEBHOOK_SECRET` and register the webhook again with `php artisan telegraph:set-webhook`. The same secret is sent during registration and checked against the incoming `X-Telegram-Bot-Api-Secret-Token` header. A missing or invalid header is rejected when a secret is configured.
+- HTML, Markdown and MarkdownV2 text messages, silent/protected messages and preview control.
+- Editing, replying, deleting, forwarding, copying and pinning text messages.
+- Inline keyboards, parameterized callbacks, keyboard replacement/removal and force replies.
+- Topic destinations through `inThread()`, without forum administration.
+- Commands, text conversations, membership updates and group-to-supergroup migration.
+- Bot/chat models, cache/file model storage and menu buttons.
+- Webhook registration, removal and diagnostics through Artisan.
+- Response inspection, custom trusted API servers/proxies and testing fakes.
 
-Custom controllers that bypass the package controller must perform the same check. Keep application-specific authorization in callback handlers.
+Applications should queue their notification service and call `send()` inside that job when they need to save Telegram's message ID.
 
-## Development
+## Webhook Setup and Actions
+
+Configure a secret containing 1-256 letters, digits, underscores or hyphens:
+
+```dotenv
+TELEGRAPH_WEBHOOK_SECRET=replace-with-a-long-random-secret
+```
+
+Register or re-register the webhook after changing it:
 
 ```bash
-vendor/bin/pest --no-coverage
-vendor/bin/phpstan analyse
-vendor/bin/php-cs-fixer fix --dry-run --diff
+php artisan telegraph:set-webhook
+# For multiple bots:
+php artisan telegraph:set-webhook 2
 ```
 
-The remaining `docs/` pages were inherited from upstream and may describe a wider API. This README describes the maintained scope.
+Registration sends the secret to Telegram. The package controller checks the matching `X-Telegram-Bot-Api-Secret-Token` header. Missing configuration returns HTTP 503; a missing/wrong header returns HTTP 403. Custom controllers must perform the same authentication.
+
+Explicitly expose actions in your handler:
+
+```php
+use DefStudio\Telegraph\Handlers\WebhookHandler;
+
+class RestaurantWebhookHandler extends WebhookHandler
+{
+    protected array $allowedActions = ['start', 'accept_order'];
+
+    public function start(string $parameter = ''): void
+    {
+        $this->chat->html('Welcome')->send();
+    }
+
+    public function accept_order(int $order_id): void
+    {
+        // Authorize this user/chat against the order before changing it.
+        $this->reply('Order accepted');
+    }
+}
+```
+
+The allowlist controls routing, not business authorization. Treat all callback parameters as untrusted. Scope order/channel lookups by the current bot, chat and tenant.
+
+## Removed Functionality
+
+Payments/Stars/refunds, games, polls/quizzes, inline query handlers, media/file transfer, reply keyboard builders, chat administration/invites/permissions, forum management, reactions, Telegram Business, long polling and the built-in dispatch job are removed. Their specialized DTOs and test fixtures are removed too.
+
+Inline query handlers and inline keyboard buttons are different features: inline buttons are supported. Unsupported top-level update types are ignored.
+
+## Migration From defstudio/telegraph
+
+After publication, remove the original dependency and require `diephp/telegraph:^2.0`. Both packages cannot be installed together because they share a namespace.
+
+Keep existing PHP imports and model subclasses. Review the removed APIs, configure the webhook secret, and add `$allowedActions` to custom handlers before deploying.
+
+Update any hard-coded `vendor/defstudio/telegraph` paths to `vendor/diephp/telegraph`. If the application disables auto-discovery, update its `extra.laravel.dont-discover` entry to the new package name and retain its custom provider registration.
+
+## Security and Development
+
+See [the security policy](.github/SECURITY.md). Use `getSafeApiUrl()` for logs; `getApiUrl()`, `getUrl()` and the URL in `toArray()` contain credentials. Keep payload debugging off in production.
+
+```bash
+composer install
+composer test
+composer audit
+```
+
+Development dependencies are not installed in applications that consume this package.
+
+## Releases
+
+Version 2.0.0 is prepared, not automatically published. Composer derives the version from a Git tag; no hard-coded `version` field is used in composer.json. See [RELEASING.md](RELEASING.md) for the Packagist setup, tag commands and consumer migration.
+
+The remaining upstream `docs/` pages may describe a wider API. This README is the maintained functional reference.
 
 ## License and Attribution
 

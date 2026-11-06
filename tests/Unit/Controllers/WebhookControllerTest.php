@@ -11,7 +11,9 @@ it('calls configured handler', function () {
     $bot = bot();
     $bot->setRelation('chats', Collection::make([TelegraphChat::factory(['chat_id' => '-123456789'])->make()]));
 
-    $response = app(WebhookController::class)->handle(webhook_request('test'), $bot->token);
+    $request = webhook_request('test');
+    $request->headers->set('X-Telegram-Bot-Api-Secret-Token', 'test-secret');
+    $response = app(WebhookController::class)->handle($request, $bot->token);
 
     expect(TestWebhookHandler::$calls_count)->toBe(1);
 

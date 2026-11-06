@@ -41,6 +41,8 @@ class TelegraphBot extends Model implements Storable
         'name',
     ];
 
+    protected $hidden = ['token'];
+
     /**
      * @return TelegraphBotFactory
      */

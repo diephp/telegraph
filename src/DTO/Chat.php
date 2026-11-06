@@ -7,7 +7,7 @@ namespace DefStudio\Telegraph\DTO;
 use Illuminate\Contracts\Support\Arrayable;
 
 /**
- * @implements Arrayable<string, string>
+ * @implements Arrayable<string, string|bool>
  */
 class Chat implements Arrayable
 {

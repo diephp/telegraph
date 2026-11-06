@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * @implements Arrayable<string, string|int|bool|array<string, mixed>>
+ * @implements Arrayable<string, string|int|bool|array<array-key, mixed>>
  */
 class Message implements Arrayable
 {
@@ -201,7 +201,7 @@ class Message implements Arrayable
             'keyboard' => $this->keyboard->isFilled() ? $this->keyboard->toArray() : null,
             'reply_to_message' => $this->replyToMessage?->toArray(),
             'new_chat_members' => $this->newChatMembers->toArray(),
-            'left_chat_member' => $this->leftChatMember,
+            'left_chat_member' => $this->leftChatMember?->toArray(),
             'migrate_to_chat_id' => (int) $this->migrateToChatId,
             'entities' => $this->entities->toArray(),
         ], fn ($value) => $value !== null);

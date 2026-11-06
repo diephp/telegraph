@@ -1,21 +1,19 @@
-name: lint
+name: code-style
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
 
 jobs:
-  php-cs-fixer:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Run PHP CS Fixer
-        uses: docker://oskarstark/php-cs-fixer-ga
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          args: --config=.php-cs-fixer.dist.php --allow-risky=yes
-
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Lint
+          php-version: '8.4'
+          extensions: mbstring, pdo_sqlite, sqlite3
+          coverage: none
+      - run: composer update --prefer-dist --no-interaction
+      - run: composer test:lint
