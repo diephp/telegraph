@@ -10,7 +10,6 @@ namespace DefStudio\Telegraph\Concerns;
 
 use DefStudio\Telegraph\Exceptions\KeyboardException;
 use DefStudio\Telegraph\Keyboard\Keyboard;
-use DefStudio\Telegraph\Keyboard\ReplyKeyboard;
 use DefStudio\Telegraph\Telegraph;
 
 /**
@@ -35,33 +34,6 @@ trait ManagesKeyboards
 
         //@phpstan-ignore-next-line
         data_set($telegraph->data, 'reply_markup.inline_keyboard', $keyboard->toArray());
-
-        return $telegraph;
-    }
-
-    /**
-     * @param array<array-key, array<array-key, array{text: string, request_contact?: bool, request_location?: bool, request_poll?: string[], web_app?: string[]}>>|ReplyKeyboard|callable(ReplyKeyboard):ReplyKeyboard $keyboard
-     */
-    public function replyKeyboard(callable|array|ReplyKeyboard $keyboard): Telegraph
-    {
-        $telegraph = clone $this;
-
-        if (is_callable($keyboard)) {
-            $keyboard = $keyboard(ReplyKeyboard::make());
-        }
-
-        if (is_array($keyboard)) {
-            $keyboard = ReplyKeyboard::fromArray($keyboard);
-        }
-
-        //@phpstan-ignore-next-line
-        data_set($telegraph->data, 'reply_markup.keyboard', $keyboard->toArray());
-
-        //@phpstan-ignore-next-line
-        foreach ($keyboard->options() as $option_key => $option_value) {
-            //@phpstan-ignore-next-line
-            data_set($telegraph->data, "reply_markup.$option_key", $option_value);
-        }
 
         return $telegraph;
     }

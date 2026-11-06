@@ -25,7 +25,6 @@ it('can create a new bot', function () {
         ->expectsQuestion("Do you want to setup a webhook for this bot?", false)
         ->assertExitCode(Command::SUCCESS);
 
-
     expect(TelegraphBot::first())
         ->not->toBeNull()
         ->token->toBe('123456789')
@@ -40,7 +39,6 @@ it('assigns a default name if not provided', function () {
         ->expectsQuestion("Do you want to add a chat to this bot?", false)
         ->expectsQuestion("Do you want to setup a webhook for this bot?", false)
         ->assertExitCode(Command::SUCCESS);
-
 
     expect(TelegraphBot::first())
         ->not->toBeNull()
@@ -58,7 +56,6 @@ it('can assign a chat to the new bot', function () {
         ->expectsQuestion("Enter the chat name (optional)", 'bar')
         ->expectsQuestion("Do you want to setup a webhook for this bot?", false)
         ->assertExitCode(Command::SUCCESS);
-
 
     /** @var TelegraphBot|null $bot */
     $bot = TelegraphBot::first();
@@ -83,7 +80,6 @@ it('keeps asking for the chat name until pressed x', function () {
         ->expectsQuestion("Enter the chat ID - press [x] to abort", "x")
         ->expectsQuestion("Do you want to setup a webhook for this bot?", false)
         ->assertExitCode(Command::SUCCESS);
-
 
     /** @var TelegraphBot|null $bot */
     $bot = TelegraphBot::first();
@@ -113,7 +109,6 @@ it('can register the new bot webhook', function () {
         ->expectsQuestion("Do you want to setup a webhook for this bot?", true)
         ->assertExitCode(Command::SUCCESS);
 
-
     expect(TelegraphBot::first())
         ->not->toBeNull()
         ->token->toBe('123456789')
@@ -138,7 +133,6 @@ it('can register the new bot webhook dropping pending updates', function () {
         ->expectsQuestion("Do you want to add a chat to this bot?", false)
         ->expectsQuestion("Do you want to setup a webhook for this bot?", true)
         ->assertExitCode(Command::SUCCESS);
-
 
     expect(TelegraphBot::first())
         ->not->toBeNull()
@@ -167,7 +161,6 @@ it('can register the new bot webhook settings its max connections', function () 
         ->expectsQuestion("Do you want to setup a webhook for this bot?", true)
         ->assertExitCode(Command::SUCCESS);
 
-
     expect(TelegraphBot::first())
         ->not->toBeNull()
         ->token->toBe('123456789')
@@ -194,7 +187,6 @@ it('can register the new bot webhook settings its secret token', function () {
         ->expectsQuestion("Do you want to add a chat to this bot?", false)
         ->expectsQuestion("Do you want to setup a webhook for this bot?", true)
         ->assertExitCode(Command::SUCCESS);
-
 
     expect(TelegraphBot::first())
         ->not->toBeNull()

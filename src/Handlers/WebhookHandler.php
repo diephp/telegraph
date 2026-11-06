@@ -10,16 +10,8 @@ namespace DefStudio\Telegraph\Handlers;
 
 use DefStudio\Telegraph\DTO\CallbackQuery;
 use DefStudio\Telegraph\DTO\Chat;
-use DefStudio\Telegraph\DTO\ChatJoinRequest;
 use DefStudio\Telegraph\DTO\ChatMemberUpdate;
-use DefStudio\Telegraph\DTO\InlineQuery;
 use DefStudio\Telegraph\DTO\Message;
-use DefStudio\Telegraph\DTO\Poll;
-use DefStudio\Telegraph\DTO\PollAnswer;
-use DefStudio\Telegraph\DTO\PreCheckoutQuery;
-use DefStudio\Telegraph\DTO\Reaction;
-use DefStudio\Telegraph\DTO\ReactionType;
-use DefStudio\Telegraph\DTO\SuccessfulPayment;
 use DefStudio\Telegraph\DTO\User;
 use DefStudio\Telegraph\Exceptions\TelegramWebhookException;
 use DefStudio\Telegraph\Keyboard\Keyboard;
@@ -41,18 +33,16 @@ abstract class WebhookHandler
     protected TelegraphChat $chat;
 
     protected int $messageId;
-    protected int $callbackQueryId;
+    protected int|string $callbackQueryId;
 
     protected Request $request;
     protected ?Message $message = null;
-    protected ?Reaction $reaction = null;
     protected ?CallbackQuery $callbackQuery = null;
-    protected ?ChatJoinRequest $chatJoinRequest = null;
     protected ?ChatMemberUpdate $myChatMember = null;
     protected ?ChatMemberUpdate $chatMember = null;
 
     /**
-     * @var Collection<string, string>|Collection<int, array<string, string>>|Collection<array-key, ReactionType>
+     * @var Collection<string, string>
      */
     protected Collection $data;
 
@@ -73,34 +63,8 @@ abstract class WebhookHandler
                 Log::debug('Telegraph webhook received', $this->request->all());
             }
 
-            if ($this->request->has('inline_query')) {
-                $this->handleInlineQuery(InlineQuery::fromArray($this->request->input('inline_query')));
-
-                return;
-            }
-
-            if ($this->request->has('poll')) {
-                $this->handlePollStateUpdate(Poll::fromArray($this->request->input('poll')));
-
-                return;
-            }
-
-            if ($this->request->has('poll_answer')) {
-                $this->handlePollAnswer(PollAnswer::fromArray($this->request->input('poll_answer')));
-
-                return;
-            }
-
-            if ($this->request->has('pre_checkout_query')) {
-                $this->handlePreCheckoutQuery(PreCheckoutQuery::fromArray($this->request->input('pre_checkout_query')));
-
-                return;
-            }
-
             // setup data
             $this->message = match (true) {
-                $this->request->has('business_message') => Message::fromArray($this->request->input('business_message')),
-                $this->request->has('edited_business_message') => Message::fromArray($this->request->input('edited_business_message')),
                 $this->request->has('message') => Message::fromArray($this->request->input('message')),
                 $this->request->has('edited_message') => Message::fromArray($this->request->input('edited_message')),
                 $this->request->has('channel_post') => Message::fromArray($this->request->input('channel_post')),
@@ -108,18 +72,8 @@ abstract class WebhookHandler
                 default => null,
             };
 
-            $this->reaction = match (true) {
-                $this->request->has('message_reaction') => Reaction::fromArray($this->request->input('message_reaction')),
-                default => null,
-            };
-
             $this->callbackQuery = match (true) {
                 $this->request->has('callback_query') => CallbackQuery::fromArray($this->request->input('callback_query')),
-                default => null,
-            };
-
-            $this->chatJoinRequest = match (true) {
-                $this->request->has('chat_join_request') => ChatJoinRequest::fromArray($this->request->input('chat_join_request')),
                 default => null,
             };
 
@@ -133,17 +87,18 @@ abstract class WebhookHandler
                 default => null,
             };
 
+            if ($this->message === null && $this->callbackQuery === null && $this->myChatMember === null && $this->chatMember === null) {
+                return;
+            }
+
             // setup chat
             $this->setupChat();
 
             // run handlers
             match (true) {
-                isset($this->message) && $this->message->successfulPayment() => $this->handleSuccessfulPayment($this->message->successfulPayment()),
                 isset($this->message) && $this->message->migrateToChatId() => $this->handleMigrateToChat(),
                 isset($this->message) => $this->handleMessage(),
-                isset($this->reaction) => $this->handleReaction(),
                 isset($this->callbackQuery) => $this->handleCallbackQuery(),
-                isset($this->chatJoinRequest) => $this->handleChatJoinRequest($this->chatJoinRequest),
                 isset($this->myChatMember) => $this->handleBotChatStatusUpdate($this->myChatMember),
                 isset($this->chatMember) => $this->handleChatMemberUpdate($this->chatMember),
                 default => null,
@@ -178,7 +133,6 @@ abstract class WebhookHandler
                 throw new NotFoundHttpException();
             }
 
-
             if (config('telegraph.security.store_unknown_chats_in_db', false)) {
                 $this->createChat($telegramChat, $this->chat);
             }
@@ -189,9 +143,7 @@ abstract class WebhookHandler
     {
         $telegramChat = match (true) {
             isset($this->message) => $this->message->chat(),
-            isset($this->reaction) => $this->reaction->chat(),
             isset($this->callbackQuery) => $this->callbackQuery->message()?->chat(),
-            isset($this->chatJoinRequest) => $this->chatJoinRequest->chat(),
             isset($this->myChatMember) => $this->myChatMember->chat(),
             isset($this->chatMember) => $this->chatMember->chat(),
             default => null,
@@ -205,8 +157,7 @@ abstract class WebhookHandler
     protected function allowUnknownChat(): bool
     {
         return (bool) match (true) {
-            isset($this->message),
-            isset($this->reaction) => config('telegraph.security.allow_messages_from_unknown_chats', false),
+            isset($this->message) => config('telegraph.security.allow_messages_from_unknown_chats', false),
             isset($this->callbackQuery) => config('telegraph.security.allow_callback_queries_from_unknown_chats', false),
             isset($this->chatMember), isset($this->myChatMember) => true,
             default => false,
@@ -249,12 +200,6 @@ abstract class WebhookHandler
 
         if ($this->message?->leftChatMember() !== null) {
             $this->handleChatMemberLeft($this->message->leftChatMember());
-
-            return;
-        }
-
-        if ($this->message?->businessConnectionId() !== null) {
-            $this->handleBusinessChatMessage($text);
 
             return;
         }
@@ -407,61 +352,7 @@ abstract class WebhookHandler
         $this->data = $this->callbackQuery->data();
     }
 
-    //---- Reaction Handlers
-    protected function handleReaction(): void
-    {
-        $this->extractReactionData();
-
-        /** @phpstan-ignore-next-line */
-        $this->handleChatReaction($this->reaction->newReaction(), $this->reaction->oldReaction());
-    }
-
-    protected function extractReactionData(): void
-    {
-        assert($this->reaction !== null);
-
-        $this->messageId = $this->reaction->id();
-
-        $this->data = $this->reaction->newReaction();
-    }
-
-    //---- Handlers
-    protected function handlePreCheckoutQuery(PreCheckoutQuery $preCheckoutQuery): void
-    {
-        $this->bot->answerPreCheckoutQuery($preCheckoutQuery->id(), true)->send();
-    }
-
-    protected function handleSuccessfulPayment(SuccessfulPayment $successfulPayment): void
-    {
-        // .. do nothing
-    }
-
-    protected function handleInlineQuery(InlineQuery $inlineQuery): void
-    {
-        // .. do nothing
-    }
-
-    protected function handlePollStateUpdate(Poll $poll): void
-    {
-        // .. do nothing
-    }
-
-    protected function handlePollAnswer(PollAnswer $pollAnswer): void
-    {
-        // .. do nothing
-    }
-
     protected function handleChatMessage(Stringable $text): void
-    {
-        // .. do nothing
-    }
-
-    protected function handleBusinessChatMessage(Stringable $text): void
-    {
-        // .. do nothing
-    }
-
-    protected function handleChatJoinRequest(ChatJoinRequest $chatJoinRequest): void
     {
         // .. do nothing
     }
@@ -482,17 +373,6 @@ abstract class WebhookHandler
     }
 
     protected function handleBotChatStatusUpdate(ChatMemberUpdate $chatMemberUpdate): void
-    {
-        // .. do nothing
-    }
-
-    /**
-     * @param  Collection<array-key, Reaction>  $newReactions
-     * @param  Collection<array-key, Reaction>  $oldReactions
-     *
-     * @return void
-     */
-    protected function handleChatReaction(Collection $newReactions, Collection $oldReactions): void
     {
         // .. do nothing
     }

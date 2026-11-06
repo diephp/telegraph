@@ -1,12 +1,12 @@
 {
     "name": "defstudio/telegraph",
-    "description": "A laravel facade to interact with Telegram Bots",
+    "description": "Focused Laravel Telegram integration for Restsify notifications and bot callbacks",
     "keywords": [
         "defstudio",
         "laravel",
         "telegraph"
     ],
-    "homepage": "https://github.com/defstudio/telegraph",
+    "homepage": "https://github.com/diephp/telegraph",
     "license": "MIT",
     "authors": [
         {
@@ -19,8 +19,7 @@
         "php": "^8.2",
         "illuminate/support": "^10.0 | ^11.0 | ^12.0",
         "illuminate/contracts": "^10.0 | ^11.0 | ^12.0",
-        "illuminate/http": "^10.0 | ^11.0 | ^12.0",
-        "spatie/laravel-package-tools": "^1.12.1"
+        "illuminate/http": "^10.0 | ^11.0 | ^12.0"
     },
     "require-dev": {
         "ext-sqlite3": "*",
@@ -56,13 +55,11 @@
         "lint": "set PHP_CS_FIXER_IGNORE_ENV=1 && php vendor/bin/php-cs-fixer fix -v",
         "test:lint": "set PHP_CS_FIXER_IGNORE_ENV=1 && php vendor/bin/php-cs-fixer fix -v --dry-run",
         "test:types": "vendor/bin/phpstan analyse --ansi --memory-limit=-1",
-        "test:unit": "vendor/bin/pest --colors=always --exclude-group=sandbox",
-        "test:sandbox": "vendor/bin/pest --colors=always --group=sandbox",
+        "test:unit": "vendor/bin/pest --colors=always",
         "test": [
             "@test:lint",
             "@test:types",
             "@test:unit",
-            "@test:sandbox",
             "@x-ray"
         ],
         "update:snapshots": "vendor/bin/pest --colors=always -d --update-snapshots",

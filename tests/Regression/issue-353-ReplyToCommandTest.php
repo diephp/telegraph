@@ -1,6 +1,5 @@
 <?php
 
-
 use DefStudio\Telegraph\Facades\Telegraph as Facade;
 use DefStudio\Telegraph\Tests\Support\TestWebhookHandler;
 

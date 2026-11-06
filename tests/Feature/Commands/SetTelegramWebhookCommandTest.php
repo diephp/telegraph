@@ -1,6 +1,5 @@
 <?php
 
-
 use DefStudio\Telegraph\Facades\Telegraph;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 

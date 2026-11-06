@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
  */
 class CallbackQuery implements Arrayable
 {
-    private int $id;
+    private int|string $id;
 
     private User $from;
 
@@ -29,7 +29,7 @@ class CallbackQuery implements Arrayable
     }
 
     /**
-     * @param array{id:int, from:array<string, mixed>, message?:array<string, mixed>, data?:string} $data
+     * @param array{id:int|string, from:array<string, mixed>, message?:array<string, mixed>, data?:string} $data
      */
     public static function fromArray(array $data): CallbackQuery
     {
@@ -47,9 +47,9 @@ class CallbackQuery implements Arrayable
             ->explode(';')
             ->filter()
             ->mapWithKeys(function (string $entity) {
-                $entity = explode(':', $entity);
+                $entity = explode(':', $entity, 2);
                 $key = $entity[0];
-                $value = $entity[1];
+                $value = $entity[1] ?? '';
 
                 return [$key => $value];
             });
@@ -57,7 +57,7 @@ class CallbackQuery implements Arrayable
         return $callbackQuery;
     }
 
-    public function id(): int
+    public function id(): int|string
     {
         return $this->id;
     }

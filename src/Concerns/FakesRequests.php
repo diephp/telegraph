@@ -4,19 +4,12 @@
 
 namespace DefStudio\Telegraph\Concerns;
 
-use DefStudio\Telegraph\Contracts\Downloadable;
 use DefStudio\Telegraph\Telegraph;
-use GuzzleHttp\Psr7\BufferStream;
-use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
-use Illuminate\Support\Testing\Fakes\QueueFake;
 use PHPUnit\Framework\Assert;
-use Psr\Http\Message\MessageInterface;
-use Psr\Http\Message\StreamInterface;
 
 //@phpstan-ignore-next-line
 trait FakesRequests
@@ -24,8 +17,6 @@ trait FakesRequests
     /** @var array<int, mixed[]> */
     protected static array $sentMessages = [];
 
-    /** @var array<int, string> */
-    protected static array $downloadedFiles = [];
 
     /** @var array<string, mixed[]> */
     protected array $replies = [];
@@ -33,17 +24,6 @@ trait FakesRequests
     public static function reset(): void
     {
         self::$sentMessages = [];
-    }
-
-    protected function dispatchRequestToTelegram(string $queue = null): PendingDispatch
-    {
-        self::$sentMessages[] = $this->messageToArray();
-
-        if (!Queue::getFacadeRoot() instanceof QueueFake) {
-            Queue::fake();
-        }
-
-        return parent::dispatchRequestToTelegram($queue);
     }
 
     /**
@@ -56,7 +36,7 @@ trait FakesRequests
             'endpoint' => $this->endpoint ?? null,
             'data' => $this->prepareData(),
             'files' => $this->files,
-            'bot_token' => $this->getBotIfAvailable()->token ?? null,
+            'bot_token' => $this->getBotToken(),
             'chat_id' => $this->getChatIfAvailable()->id ?? null,
             'message' => $this->data['text'] ?? null,
             'parse_mode' => $this->data['parse_mode'] ?? null,
@@ -65,195 +45,31 @@ trait FakesRequests
 
     protected function sendRequestToTelegram(): Response
     {
-        self::$sentMessages[] = $this->messageToArray();
-
-        $messageClass = new class () implements MessageInterface {
-            public function __construct(private array|string $reply = [])
-            {
-            }
-
-            public function getStatusCode(): int
-            {
-                return 200;
-            }
-
-            public function getProtocolVersion(): string
-            {
-                return "";
-            }
-
-            public function withProtocolVersion($version): static
-            {
-                return $this;
-            }
-
-            public function getHeaders(): array
-            {
-                return [];
-            }
-
-            public function hasHeader($name): bool
-            {
-                return false;
-            }
-
-            public function getHeader($name): array
-            {
-                return [];
-            }
-
-            public function getHeaderLine($name): string
-            {
-                return "";
-            }
-
-            public function withHeader($name, $value): static
-            {
-                return $this;
-            }
-
-            public function withAddedHeader($name, $value): static
-            {
-                return $this;
-            }
-
-            public function withoutHeader($name): static
-            {
-                return $this;
-            }
-
-            public function getBody(): StreamInterface
-            {
-                $buffer = new BufferStream();
-
-                /** @phpstan-ignore-next-line */
-                $buffer->write(json_encode($this->reply));
-
-                return $buffer;
-            }
-
-            public function withBody(StreamInterface $body): static
-            {
-                return $this;
-            }
-        };
+        $message = $this->messageToArray();
+        self::$sentMessages[] = $message;
 
         $response = $this->replies[$this->endpoint] ?? match ($this->endpoint) {
-            Telegraph::ENDPOINT_MESSAGE => [
+            Telegraph::ENDPOINT_MESSAGE, Telegraph::ENDPOINT_EDIT_MESSAGE => [
                 'ok' => true,
                 'result' => [
-                    'message_id' => rand(1, 99999),
-                    'sender_chat' => [
-                        'id' => $this->getChatIfAvailable()?->chat_id ?? -rand(1, 99999),
-                        'title' => 'Test Chat',
-                        'type' => 'channel',
-                    ],
+                    'message_id' => $this->data['message_id'] ?? rand(1, 99999),
+                    'chat' => ['id' => $message['data']['chat_id'], 'title' => 'Test Chat', 'type' => 'channel'],
                     'date' => now()->timestamp,
                     'text' => $this->data['text'],
                 ],
             ],
             Telegraph::ENDPOINT_GET_BOT_INFO => [
                 'ok' => true,
-                'result' => [
-                    'id' => 42,
-                    'is_bot' => true,
-                    'first_name' => 'telegraph-test',
-                    'username' => 'test_bot',
-                    'can_join_groups' => true,
-                    'can_read_all_group_messages' => false,
-                    'supports_inline_queries' => false,
-                ],
+                'result' => ['id' => 42, 'is_bot' => true, 'first_name' => 'telegraph-test', 'username' => 'test_bot', 'can_join_groups' => true, 'can_read_all_group_messages' => false, 'supports_inline_queries' => false],
             ],
             Telegraph::ENDPOINT_GET_CHAT_INFO => [
                 'ok' => true,
-                'result' => [
-                    'id' => 42,
-                    'type' => 'group',
-                    'title' => 'foo',
-                    'description' => 'bar',
-                    'has_private_forwards' => true,
-                    'join_by_request' => true,
-                    'has_protected_content' => true,
-                ],
+                'result' => ['id' => 42, 'type' => 'group', 'title' => 'foo', 'description' => 'bar', 'has_private_forwards' => true, 'join_by_request' => true, 'has_protected_content' => true],
             ],
-            Telegraph::ENDPOINT_GET_CHAT_MEMBER_COUNT => [
-                'ok' => true,
-                'result' => 1,
-            ],
-            Telegraph::ENDPOINT_GET_BOT_UPDATES => [
-                'ok' => true,
-                'result' => [
-                    [
-                        'update_id' => 123456,
-                        'message' => [
-                            'message_id' => 42,
-                            'from' => [
-                                'id' => 444,
-                                'is_bot' => false,
-                                'first_name' => 'John',
-                                'last_name' => 'Smith',
-                                'username' => 'john_smith',
-                                'language_code' => 'en',
-                                'is_premium' => false,
-                            ],
-                            'chat' => [
-                                'id' => 987654,
-                                'first_name' => 'John',
-                                'last_name' => 'Smith',
-                                'username' => 'john_smith',
-                                'type' => 'private',
-                            ],
-                            'date' => 1646516736,
-                            'text' => '/start',
-                            'entities' => [
-                                [
-                                    'offset' => 0,
-                                    'length' => 6,
-                                    'type' => 'bot_command',
-                                ],
-                            ],
-                        ],
-                    ],
-                    [
-                        'update_id' => 123457,
-                        'message' => [
-                            'message_id' => 99,
-                            'from' => [
-                                'id' => 8974,
-                                'is_bot' => true,
-                                'first_name' => 'Test Bot',
-                                'username' => 'test_bot',
-                                'can_join_groups' => true,
-                                'can_read_all_group_messages' => false,
-                                'supports_inline_queries' => false,
-                            ],
-                            'chat' => [
-                                'id' => -987455499,
-                                'title' => 'Bot Test Chat',
-                                'type' => 'group',
-                            ],
-                            'date' => 1646519736,
-                            'text' => 'Hello world!',
-                            'entities' => [],
-                        ],
-                    ],
-                ],
-            ],
-            default => [
-                'ok' => true,
-            ],
+            default => ['ok' => true],
         };
 
-        return new Response(new $messageClass($response));
-    }
-
-    public function store(Downloadable|string $downloadable, string $path, string $filename = null): string
-    {
-        $fileId = is_string($downloadable) ? $downloadable : $downloadable->id();
-
-        self::$downloadedFiles[] = $fileId;
-
-        return $path . "/" . ($filename ?? 'missing_name.jpg');
+        return new Response(new \GuzzleHttp\Psr7\Response(200, ['Content-Type' => 'application/json'], json_encode($response, JSON_THROW_ON_ERROR)));
     }
 
     public function dumpSentData(): void

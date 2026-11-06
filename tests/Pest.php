@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\URL;
 uses(TestCase::class)->in("Feature");
 uses(TestCase::class)->in("Unit");
 uses(TestCase::class)->in("Regression");
-uses(TestCase::class)->group('sandbox')->in("Sandbox");
 
 function withfakeUrl(): string
 {
@@ -33,11 +32,6 @@ function withfakeUrl(): string
 function bots(int $count): Collection
 {
     return TelegraphBot::factory()->count($count)->create();
-}
-
-function sandbox_bot(): TelegraphBot
-{
-    return bot(env('SANDOBOX_TELEGRAM_BOT_TOKEN'), env('SANDBOX_TELEGRAM_CHAT_ID'));
 }
 
 function bot(string $token = '3f3814e1-5836-3d77-904e-60f64b15df36', string $chatId = '-123456789'): TelegraphBot
@@ -89,8 +83,7 @@ function register_webhook_handler(string $handler = TestWebhookHandler::class): 
     config()->set('telegraph.webhook.handler', $handler);
 }
 
-
-function webhook_message($handler = TestWebhookHandler::class, array $message = null): Request
+function webhook_message($handler = TestWebhookHandler::class, ?array $message = null): Request
 {
     register_webhook_handler($handler);
 
@@ -103,35 +96,6 @@ function webhook_message($handler = TestWebhookHandler::class, array $message = 
                     'title' => 'Test chat',
                 ],
                 "text" => 'foo',
-            ],
-    ]);
-}
-
-
-function webhook_message_reaction($handler = TestWebhookHandler::class, array $message = null): Request
-{
-    register_webhook_handler($handler);
-
-    return Request::create('', 'POST', [
-        'message_reaction' => $message ?? [
-                'chat' => [
-                    'id' => 3,
-                    'type' => 'a',
-                    'title' => 'b',
-                ],
-                'date' => 1727211008,
-                'user' => [
-                    'id' => 1,
-                    'first_name' => 'a',
-                ],
-                'message_id' => 2,
-                'new_reaction' => [
-                    [
-                        'type' => 'emoji',
-                        'emoji' => '👍',
-                    ],
-                ],
-                'old_reaction' => [],
             ],
     ]);
 }
@@ -191,162 +155,6 @@ function webhook_command($command, $handler = TestWebhookHandler::class, int $ch
             ],
             'text' => $command,
             'date' => 1646516736,
-        ],
-    ]);
-}
-
-function webhook_inline_query($handler = TestWebhookHandler::class): Request
-{
-    register_webhook_handler($handler);
-
-    return Request::create('', 'POST', [
-        'inline_query' => [
-            'id' => "a99",
-            'query' => 'foo',
-            'from' => [
-                'id' => 1,
-                'is_bot' => false,
-                'first_name' => 'e',
-                'last_name' => 'f',
-                'username' => 'g',
-            ],
-            'offset' => '+4',
-            'chat_type' => 'private',
-        ],
-    ]);
-}
-
-function webhook_pre_checkout_query($handler = TestWebhookHandler::class): Request
-{
-    register_webhook_handler($handler);
-
-    return Request::create('', 'POST', [
-        'pre_checkout_query' => [
-            'id' => 3,
-            'from' => [
-                'id' => 1,
-                'is_bot' => true,
-                'first_name' => 'a',
-                'last_name' => 'b',
-                'username' => 'c',
-            ],
-            'currency' => 'EUR',
-            'total_amount' => '100',
-            'invoice_payload' => 'test payload',
-            'shipping_option_id' => 'test id',
-            'order_info' => [
-                'name' => 'test name',
-                'phone_number' => '+39 333 333 3333',
-                'email' => 'test@email.it',
-                'shipping_address' => [
-                    'country_code' => '+39',
-                    'state' => 'italy',
-                    'city' => 'rome',
-                    'street_line1' => 'street test',
-                    'street_line2' => '',
-                    'post_code' => '00042',
-                ],
-            ],
-        ],
-    ]);
-}
-
-function webhook_successful_payment($handler = TestWebhookHandler::class, int $chat_id = -123456789): Request
-{
-    register_webhook_handler($handler);
-
-    return Request::create('', 'POST', [
-        'message' => [
-            "message_id" => 1,
-            "from" => [
-                "id" => 100,
-                "is_bot" => false,
-                "username" => "Test User",
-                "last_name" => "Test User",
-                "first_name" => "Test User",
-                "is_premium" => true,
-                "language_code" => "it",
-            ],
-            "chat" => [
-                "id" => $chat_id,
-                "type" => "a",
-                "title" => "b",
-                "all_members_are_administrators" => false,
-            ],
-            "date" => 100000,
-            'successful_payment' => [
-                'currency' => 'EUR',
-                'total_amount' => 100,
-                'invoice_payload' => 'id_10',
-                'subscription_expiration_date' => 14000,
-                'is_recurring' => false,
-                'is_first_recurring' => false,
-                'shipping_option_id' => 10,
-                'order_info' => [
-                    'name' => 'test name',
-                    'phone_number' => ' + 39 333 333 3333',
-                    'email' => 'test@email . it',
-                    'shipping_address' => [
-                        'country_code' => ' + 39',
-                        'state' => 'italy',
-                        'city' => 'rome',
-                        'street_line1' => 'street test',
-                        'street_line2' => '',
-                        'post_code' => '00042',
-                    ],
-                ],
-                'telegram_payment_charge_id' => 10,
-                'provider_payment_charge_id' => 10,
-            ],
-        ],
-    ]);
-}
-
-function webhook_poll_state_update($handler = TestWebhookHandler::class, int $chat_id = -123456789): Request
-{
-    register_webhook_handler($handler);
-
-    return Request::create('', 'POST', [
-        'update_id' => 123456789,
-        "poll" => [
-            "id" => $chat_id,
-            "question" => "Select Professions",
-            "options" => [
-                [
-                    "text" => "Profession 1",
-                    "voter_count" => 1,
-                ],
-                [
-                    "text" => "Profession 2",
-                    "voter_count" => 0,
-                ],
-            ],
-            "total_voter_count" => 1,
-            "is_closed" => false,
-            "is_anonymous" => false,
-            "type" => "regular",
-            "allows_multiple_answers" => false,
-        ],
-    ]);
-}
-
-function webhook_poll_answer_received($handler = TestWebhookHandler::class, int $chat_id = -123456789): Request
-{
-    register_webhook_handler($handler);
-
-    return Request::create('', 'POST', [
-        'update_id' => 123456789,
-        "poll_answer" => [
-            "poll_id" => "5998796039392330592",
-            "user" => [
-                "id" => 1771049713,
-                "is_bot" => false,
-                "first_name" => "Mario Gattolla",
-                "language_code" => "it",
-            ],
-            "option_ids" => [
-                0,
-            ],
         ],
     ]);
 }
@@ -479,49 +287,6 @@ function webhook_migrate_to_chat($handler = TestWebhookHandler::class, int $chat
         ],
     ]);
 }
-
-function webhook_chat_join_request($handler = TestWebhookHandler::class, int $chat_id = -123456789, int $user_id = 1): Request
-{
-    register_webhook_handler($handler);
-
-    return Request::create('', 'POST', [
-        'chat_join_request' => [
-            'user_chat_id' => $user_id,
-            'bio' => 'bio',
-            'date' => now()->timestamp,
-            'invite_link' => [
-                'invite_link' => 'https:/t.me/+EEEEEEE...',
-                'creator' => [
-                    'id' => 1,
-                    'is_bot' => false,
-                    'first_name' => 'aa',
-                    'last_name' => 'bb',
-                    'username' => 'cc',
-                    'language_code' => 'dd',
-                    'is_premium' => false,
-                ],
-                'creates_join_request' => true,
-                'is_primary' => false,
-                'is_revoked' => false,
-            ],
-            'chat' => [
-                'id' => $chat_id,
-                'type' => 'a',
-                'title' => 'b',
-            ],
-            'from' => [
-                'id' => $user_id,
-                'is_bot' => true,
-                'first_name' => 'a',
-                'last_name' => 'b',
-                'username' => 'c',
-                'language_code' => 'd',
-                'is_premium' => false,
-            ],
-        ],
-    ]);
-}
-
 
 expect()->extend('toMatchTelegramSnapshot', function () {
     /** @var Closure(Telegraph): Telegraph $configurationClosure */

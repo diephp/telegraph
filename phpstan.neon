@@ -7,5 +7,4 @@ parameters:
         - src/Support/Testing
 
     ignoreErrors:
-        - '#expects string, mixed given#'
         - '#Parameter \#1 .+ of static method .+::fromArray\(\) expects .+ given.#'

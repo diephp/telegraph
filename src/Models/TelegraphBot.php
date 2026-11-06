@@ -8,12 +8,8 @@
 namespace DefStudio\Telegraph\Models;
 
 use DefStudio\Telegraph\Concerns\HasStorage;
-use DefStudio\Telegraph\Contracts\Downloadable;
 use DefStudio\Telegraph\Contracts\Storable;
 use DefStudio\Telegraph\Database\Factories\TelegraphBotFactory;
-use DefStudio\Telegraph\DTO\InlineQueryResult;
-use DefStudio\Telegraph\DTO\TelegramUpdate;
-use DefStudio\Telegraph\Exceptions\TelegramUpdatesException;
 use DefStudio\Telegraph\Exceptions\TelegraphException;
 use DefStudio\Telegraph\Facades\Telegraph as TelegraphFacade;
 use DefStudio\Telegraph\Telegraph;
@@ -121,27 +117,9 @@ class TelegraphBot extends Model implements Storable
         return TelegraphFacade::bot($this)->getWebhookDebugInfo();
     }
 
-    public function replyWebhook(int $callbackQueryId, string $message, bool $showAlert = false): Telegraph
+    public function replyWebhook(int|string $callbackQueryId, string $message, bool $showAlert = false): Telegraph
     {
         return TelegraphFacade::bot($this)->replyWebhook($callbackQueryId, $message, $showAlert);
-    }
-
-    public function answerPreCheckoutQuery(int $preCheckoutQueryId, bool $result, ?string $errorMessage = null): Telegraph
-    {
-        return TelegraphFacade::bot($this)->answerPreCheckoutQuery($preCheckoutQueryId, $result, $errorMessage);
-    }
-
-    public function refundStarPayment(string $userId, string $telegramPaymentChargeId): Telegraph
-    {
-        return TelegraphFacade::bot($this)->refundStarPayment($userId, $telegramPaymentChargeId);
-    }
-
-    /**
-     * @param InlineQueryResult[] $results
-     */
-    public function answerInlineQuery(string $inlineQueryID, array $results): Telegraph
-    {
-        return TelegraphFacade::bot($this)->answerInlineQuery($inlineQueryID, $results);
     }
 
     /**
@@ -177,46 +155,9 @@ class TelegraphBot extends Model implements Storable
         return $reply->json('result');
     }
 
-    public function getFileInfo(string $fileId): Telegraph
-    {
-        return TelegraphFacade::bot($this)->getFileInfo($fileId);
-    }
-
-    public function store(Downloadable|string $attachment, string $path, string|null $filename = null): string
-    {
-        return TelegraphFacade::bot($this)->store($attachment, $path, $filename);
-    }
-
     public function url(): string
     {
         return "https://t.me/" . $this->info()['username'];
-    }
-
-    /**
-     * @param string[]|null $allowedUpdates
-     *
-     * @return \Illuminate\Support\Collection<int, TelegramUpdate>
-     */
-    public function updates(int|null $timeout = null, int|null $offset = null, int|null $limit = null, array|null $allowedUpdates = null): \Illuminate\Support\Collection
-    {
-        $reply = TelegraphFacade::bot($this)->botUpdates($timeout, $offset, $limit, $allowedUpdates)->send();
-
-        if ($reply->telegraphError()) {
-            if (!$reply->successful()) {
-                throw TelegramUpdatesException::pollingError($this, $reply->reason());
-            }
-
-            if ($reply->json('error_code') == 409) {
-                throw TelegramUpdatesException::webhookExist($this);
-            }
-
-            /* @phpstan-ignore-next-line */
-            throw TelegramUpdatesException::pollingError($this, $reply->json('description'));
-        }
-
-
-        /* @phpstan-ignore-next-line */
-        return collect($reply->json('result'))->map(fn (array $update) => TelegramUpdate::fromArray($update));
     }
 
     public function setBaseUrl(string|null $url): Telegraph

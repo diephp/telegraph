@@ -13,6 +13,11 @@ class WebhookController
 {
     public function handle(Request $request, string $token): Response
     {
+        $secret = config('telegraph.webhook.secret_token') ?? config('telegraph.webhook.secret');
+        if (is_string($secret) && $secret !== '') {
+            abort_unless(hash_equals($secret, (string) $request->header('X-Telegram-Bot-Api-Secret-Token')), 403);
+        }
+
         /** @var class-string<TelegraphBot> $botModel */
         $botModel = config('telegraph.models.bot');
 

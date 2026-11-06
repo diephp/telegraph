@@ -1,6 +1,5 @@
 <?php
 
-
 use DefStudio\Telegraph\Facades\Telegraph;
 
 $fake_response_data = [

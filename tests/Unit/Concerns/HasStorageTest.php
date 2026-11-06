@@ -48,7 +48,6 @@ it('requires a default store', function () {
     $class->storage();
 })->throws(StorageException::class, 'No default driver defined in telegraph.storage.default config');
 
-
 it('requires a driver configuration to exist', function () {
     config()->set('telegraph.storage.stores.file');
     $class = new class () implements Storable {

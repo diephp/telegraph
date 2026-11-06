@@ -50,7 +50,7 @@ trait InteractsWithWebhooks
             'url' => $this->getWebhookUrl(),
             'drop_pending_updates' => $dropPendingUpdates,
             'max_connections' => $maxConnections ?? config('telegraph.webhook.max_connections'),
-            'secret_token' => $secretToken ?? config('telegraph.webhook.secret_token'),
+            'secret_token' => $secretToken ?? config('telegraph.webhook.secret_token') ?? config('telegraph.webhook.secret'),
             'allowed_updates' => $allowedUpdates ?? config('telegraph.webhook.allowed_updates'),
         ])->filter()
             ->toArray();
@@ -79,7 +79,7 @@ trait InteractsWithWebhooks
         return $telegraph;
     }
 
-    public function replyWebhook(int $callbackQueryId, string $message, bool $showAlert = false): Telegraph
+    public function replyWebhook(int|string $callbackQueryId, string $message, bool $showAlert = false): Telegraph
     {
         $telegraph = clone $this;
 
@@ -88,20 +88,6 @@ trait InteractsWithWebhooks
             'callback_query_id' => $callbackQueryId,
             'text' => $message,
             'show_alert' => $showAlert,
-        ];
-
-        return $telegraph;
-    }
-
-    public function answerPreCheckoutQuery(int $preCheckoutQueryId, bool $result, ?string $errorMessage = null): Telegraph
-    {
-        $telegraph = clone $this;
-
-        $telegraph->endpoint = self::ENDPOINT_ANSWER_PRE_CHECKOUT_QUERY;
-        $telegraph->data = [
-            'pre_checkout_query_id' => $preCheckoutQueryId,
-            'ok' => $result,
-            'error_message' => $errorMessage,
         ];
 
         return $telegraph;

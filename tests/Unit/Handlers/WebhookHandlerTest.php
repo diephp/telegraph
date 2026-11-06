@@ -2,7 +2,6 @@
 
 /** @noinspection PhpUnhandledExceptionInspection */
 
-
 use DefStudio\Telegraph\Facades\Telegraph as Facade;
 use DefStudio\Telegraph\Telegraph;
 use DefStudio\Telegraph\Tests\Support\TestEntitiesWebhookHandler;
@@ -310,85 +309,6 @@ it('can delete the inline keyboard', function () {
     Facade::assertSentData(Telegraph::ENDPOINT_REPLACE_KEYBOARD);
 });
 
-it('can handle an inlineQuery', function () {
-    $bot = bot();
-    Facade::fake();
-
-    app(TestWebhookHandler::class)->handle(webhook_inline_query(), $bot);
-
-    Facade::assertSentData(Telegraph::ENDPOINT_ANSWER_INLINE_QUERY, [
-        "inline_query_id" => "a99",
-        "results" => [
-            [
-                "gif_url" => "https://gif.dev",
-                "thumb_url" => "https://thumb.gif.test",
-                "gif_width" => 300,
-                "gif_height" => 400,
-                "gif_duration" => 200,
-                "title" => "bar",
-                "caption" => "foo",
-                'parse_mode' => 'html',
-                "id" => "99",
-                "type" => "gif",
-                "reply_markup" => [
-                    "inline_keyboard" => [
-                        [
-                            [
-                                "text" => "buy",
-                                "callback_data" => "action:buy;id:99",
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                "gif_url" => "https://gif2.dev",
-                "thumb_url" => "https://thumb.gif2.test",
-                "gif_width" => 1300,
-                "gif_height" => 1400,
-                "gif_duration" => 1200,
-                "title" => "quz",
-                "caption" => "baz",
-                'parse_mode' => 'html',
-                "id" => "98",
-                "type" => "gif",
-                "reply_markup" => [
-                    "inline_keyboard" => [
-                        [
-                            [
-                                "text" => "buy",
-                                "callback_data" => "action:buy;id:98",
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ],
-    ]);
-});
-
-it('can handle a preCheckoutQuery', function () {
-    $bot = bot();
-    Facade::fake();
-
-    app(TestWebhookHandler::class)->handle(webhook_pre_checkout_query(), $bot);
-
-    Facade::assertSentData(Telegraph::ENDPOINT_ANSWER_PRE_CHECKOUT_QUERY, [
-        "pre_checkout_query_id" => "3",
-        'ok' => true,
-        'error_message' => null,
-    ]);
-});
-
-it('can handle a successfulPayment', function () {
-    $bot = bot();
-    Facade::fake();
-
-    app(TestWebhookHandler::class)->handle(webhook_successful_payment(), $bot);
-
-    Facade::assertSent("payment");
-});
-
 it('can handle a bot chat member update', function () {
     $bot = bot();
     Facade::fake();
@@ -436,24 +356,6 @@ it('can handle message', function () {
     Facade::assertSent("Received: foo");
 });
 
-it('can handle poll state update', function () {
-    $bot = bot();
-    Facade::fake();
-
-    app(TestWebhookHandler::class)->handle(webhook_poll_state_update(), $bot);
-
-    Facade::assertSent("Poll state updated");
-});
-
-it('can handle poll answer received', function () {
-    $bot = bot();
-    Facade::fake();
-
-    app(TestWebhookHandler::class)->handle(webhook_poll_answer_received(), $bot);
-
-    Facade::assertSent("Poll answer received");
-});
-
 it('can handle a member join', function () {
     $bot = bot();
     Facade::fake();
@@ -498,63 +400,6 @@ it('can handle a member left', function () {
     ]), $bot);
 
     Facade::assertSent("Bob just left");
-});
-
-it('can handle a chat join request', function () {
-    $bot = bot();
-    Facade::fake();
-
-    app(TestWebhookHandler::class)->handle(webhook_chat_join_request(user_id: 2), $bot);
-
-    Facade::assertChatJoinRequestApproved(2);
-});
-
-it('can handle a message reaction', function () {
-    Config::set('telegraph.security.allow_messages_from_unknown_chats', true);
-
-    $bot = bot();
-    Facade::fake();
-
-    app(TestWebhookHandler::class)->handle(webhook_message_reaction(message: [
-        'chat' => [
-            'id' => 3,
-            'type' => 'a',
-            'title' => 'b',
-        ],
-        'actor_chat' => [
-            'id' => 3,
-            'type' => 'a',
-            'title' => 'b',
-        ],
-        'date' => 1727211008,
-        'user' => [
-            'id' => 1,
-            'is_bot' => false,
-            'first_name' => 'a',
-            'last_name' => 'b',
-            'username' => 'c',
-            'language_code' => 'd',
-            'is_premium' => false,
-        ],
-        'message_id' => 2,
-        'new_reaction' => [
-            [
-                'type' => 'emoji',
-                'emoji' => '👍',
-            ],
-        ],
-        'old_reaction' => [
-            [
-                'type' => 'emoji',
-                'emoji' => '🔥',
-            ],
-        ],
-    ]), $bot);
-
-    Facade::assertSent(implode(':', [
-        'New reaction is 👍',
-        'Old reaction is 🔥',
-    ]));
 });
 
 it('can handle a message entities', function () {

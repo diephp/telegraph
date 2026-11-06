@@ -1,102 +1,70 @@
-![Pest Laravel Expectations](https://banners.beyondco.de/Laravel%20Telegraph.png?theme=light&packageManager=composer+require&packageName=defstudio%2Ftelegraph&pattern=architect&style=style_1&description=Telegram+bots+made+easy&md=1&showWatermark=1&fontSize=100px&images=phone-outgoing)
+# Telegraph for Restsify
 
-<a href="https://packagist.org/packages/defstudio/telegraph" target="_blank"><img style="display: inline-block; margin-top: 0.5em; margin-bottom: 0.5em" src="https://img.shields.io/packagist/v/defstudio/telegraph.svg?style=flat&cacheSeconds=3600" alt="Latest Version on Packagist"></a>
-<a href="https://github.com/defstudio/telegraph/actions?query=workflow%3Arun-tests+branch%3Amain" target="_blank"><img style="display: inline-block; margin-top: 0.5em; margin-bottom: 0.5em" src="https://img.shields.io/github/actions/workflow/status/defstudio/telegraph/run-tests.yml?branch=main&label=tests&cacheSeconds=3600&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAABiVBMVEUAAAD/iPv9yP3Xm+j/mP//wfVj67Je6bP/h/pVx6p6175d57WQycf+iPn/iPrsnezArd3+t/qpvNJd6LP/jPpu6rv/lPr/kPpc57T/rvtc57Np6rj3oPl37cL/tfn/wv9d6brX//L/g/rYn+n/gvrWm+di6LX+jPrskfGWzMpt6bln4bdd57Jk6LWSycj+vPquwNVo6rde6bP7nvvYnup91b/+vfv/lvtc57OqvNTFs9//t/td57L9t/r/iPpd6LPapej/ovp26bxy67v9lfld6LJr4Ljwsvb/xv3/jv39zv1t6buG5cTDreH5ivlc5rJy676V4cxb57D/y/h50MOy4OCUxcVa77X/iPpe6LP/jP+pu9L8t///tvuQycfArNxp6LzArd151r7/i/9n4bb/j/9e6rT/ifr7ifrskvLYnuhi87tg8blg7bf/vv//lP+wxNtj9b3/qv//oP/+ivz/l/r8ifryn/fvlPTfpPDeofDKtujHtOWX1NF/4seC3cR82sFu7cBo5LiMwPMrAAAAWHRSTlMA/Wv8FAIC/dME/Wj+3tEG/Pv798G1oHRjS0k1LBsWDgsJ/v36+fTy8ezn4+Lh29XNzMzLysLAwLSwr66opJqakY+Ni4J7end0bGlpY11XU048KicmIR8fizl+vwAAAVdJREFUKM9tz2VXAlEQgOFBBURpkE67u7u7E1YFYQl1SbvrlztDiLvss+fc/fCemXMvAEhhKqU759P1rLoxUDUyEh9fPH0z7ALiVrEY+SSNtxNS2upouYv7hOL191aKVsZHUTgbnQPQgDkq4ctHdoQmTWmW4WFzlVUDVpNKXf2fWpWbZIwUq/hcmjWGYnSa1pZZjEoomrEdVAisD7CX6GEb40rqTODxCj21OjDOvjRV8l2jhudBDchg/FUbDIZCITzwQyH6a9+2AMDbm9GfltFnxgAdtQWUgQJl4VQq37uPcSnsfYZzav6Ew18fQ4fUYPM7Qn4uSiIdyx5saJ6T+/3+5KSltshicwI2UpfAKE/aoARTvnn7KMYMdlAUyWRSyHN2JeU42HlCi4TszTHcmuj3iMVdP5JzoyAWNzi6T3ZGrMFCliK3BAqRSC/B2+6IxvYYNcO+2Npfv+yFi10LfBUAAAAASUVORK5CYII=" alt="Tests"></a>
-<a href="https://github.com/defstudio/telegraph/actions?query=workflow%3Alint+branch%3Amain" target="_blank"><img style="display: inline-block; margin-top: 0.5em; margin-bottom: 0.5em" src="https://img.shields.io/github/actions/workflow/status/defstudio/telegraph/php-cs-fixer.yml?branch=main&label=code%20style&cacheSeconds=3600" alt="Code Style"></a>
-<a href="https://github.com/defstudio/telegraph/actions?query=workflow%3Aphpstan+branch%3Amain" target="_blank"><img style="display: inline-block; margin-top: 0.5em; margin-bottom: 0.5em" src="https://img.shields.io/github/actions/workflow/status/defstudio/telegraph/phpstan.yml?branch=main&label=phpstan&cacheSeconds=3600" alt="Static Analysis"></a>
-<a href="https://packagist.org/packages/defstudio/telegraph" target="_blank"><img style="display: inline-block; margin-top: 0.5em; margin-bottom: 0.5em" src="https://img.shields.io/packagist/dt/defstudio/telegraph.svg?style=flat&cacheSeconds=3600" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/defstudio/telegraph" target="_blank"><img style="display: inline-block; margin-top: 0.5em; margin-bottom: 0.5em" src="https://img.shields.io/packagist/l/defstudio/telegraph?style=flat&cacheSeconds=3600" alt="License"></a>
-<a href="https://twitter.com/FabioIvona?ref_src=twsrc%5Etfw" target="_blank"><img style="display: inline-block; margin-top: 0.5em; margin-bottom: 0.5em" alt="Twitter Follow" src="https://img.shields.io/twitter/follow/FabioIvona?label=Follow&style=social"></a>
+A focused fork of [defstudio/telegraph](https://github.com/defstudio/telegraph), maintained at [diephp/telegraph](https://github.com/diephp/telegraph).
 
----
+The Composer package name and PHP namespace remain `defstudio/telegraph` and `DefStudio\\Telegraph` so existing Restsify integrations continue to resolve them.
 
+## Supported Features
 
-**Telegraph** is a Laravel package for fluently interacting with Telegram Bots made by [def:studio](https://twitter.com/FabioIvona)
+- Reusable HTML/Markdown message builders with deferred bot and chat assignment.
+- Sending, editing, replying, deleting, forwarding, copying and pinning text messages.
+- Inline keyboards, callback actions with parameters, keyboard replacement and removal.
+- Forum topic destinations through `inThread()`.
+- Webhook commands, callbacks, bot membership changes and chat migration.
+- Bot/chat models, model storage, webhook setup and diagnostic Artisan commands.
+- HTTP response inspection and test fakes.
 
-```php
-Telegraph::message('hello world')
-    ->keyboard(Keyboard::make()->buttons([
-            Button::make('Delete')->action('delete')->param('id', '42'),
-            Button::make('open')->url('https://test.it'),
-    ]))->send();
-```
+Payments, games, polls, inline query handlers, media/file transfers, reply keyboard builders, chat administration, forum management, Telegram Business, reactions, long polling and the built-in dispatch job have been removed. This fork is not a drop-in replacement for applications using those upstream features. Unsupported update types are ignored.
 
 ## Installation
 
-You can install the package via composer:
+Configure a Composer VCS repository pointing to `https://github.com/diephp/telegraph.git` and require the desired fork branch or tag as `defstudio/telegraph`.
+
+For a new installation:
 
 ```bash
-composer require defstudio/telegraph
-```
-
-Publish and launch required migrations:
-
-```bash
-php artisan vendor:publish --tag="telegraph-migrations"
-```
-
-```bash
+php artisan vendor:publish --tag=telegraph-config
+php artisan vendor:publish --tag=telegraph-migrations
 php artisan migrate
 ```
 
-Optionally, you can publish the config and translation file with:
-```bash
-php artisan vendor:publish --tag="telegraph-config"
-```
-```bash
-php artisan vendor:publish --tag="telegraph-translations"
-```
+Existing applications with custom models and migrations can keep their own schema and configuration.
 
-## Usage & Documentation
-
-After a new bot is created and added to a chat/group/channel (as described [in our documentation](https://docs.defstudio.it/telegraph/v1/quickstart/new-bot)),
-the `Telegraph` facade can be used to easily send messages and interact with it:
+## Reusable Messages
 
 ```php
-Telegraph::message('this is great')->send();
+use DefStudio\\Telegraph\\Facades\\Telegraph;
+use DefStudio\\Telegraph\\Keyboard\\Button;
+use DefStudio\\Telegraph\\Keyboard\\Keyboard;
+
+$message = Telegraph::html('<b>Order #42</b>')
+    ->keyboard(Keyboard::make()->row([
+        Button::make('Accept')->action('accept_order')->param('order_id', 42),
+    ]))
+    ->withoutPreview();
+
+$message->bot($firstBot)->chat($firstChatId)->send();
+$message->bot($secondBot)->chat($secondChatId)->send();
 ```
 
-An extensive documentation is available at
+Use `send()` to inspect `telegraphError()` and obtain `telegraphMessageId()`. Applications can queue their notification service while keeping access to the Telegram response.
 
-https://docs.defstudio.it/telegraph
+## Webhook Authentication
 
-## Testing
+Set `TELEGRAPH_WEBHOOK_SECRET` and register the webhook again with `php artisan telegraph:set-webhook`. The same secret is sent during registration and checked against the incoming `X-Telegram-Bot-Api-Secret-Token` header. A missing or invalid header is rejected when a secret is configured.
+
+Custom controllers that bypass the package controller must perform the same check. Keep application-specific authorization in callback handlers.
+
+## Development
 
 ```bash
-composer test
+vendor/bin/pest --no-coverage
+vendor/bin/phpstan analyse
+vendor/bin/php-cs-fixer fix --dry-run --diff
 ```
 
-## Changelog
+The remaining `docs/` pages were inherited from upstream and may describe a wider API. This README describes the maintained scope.
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently. [Follow Us](https://twitter.com/FabioIvona) on Twitter for more updates about this package.
+## License and Attribution
 
-## Contributing
-
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [Fabio Ivona](https://github.com/defstudio)
-- [def:studio team](https://github.com/defstudio)
-- [Andrea Marco Sartori](https://github.com/cerbero90) for his cool ideas
-- [Alberto Pieripolli](https://github.com/trippo) Pest badge
-- [Joris Drenth](https://github.com/jorisdrenth) Docs fix and upgrade
-- [All Contributors](../../contributors)
-
-## Translators
-
-- [Tievo](https://github.com/Tievodj) Spanish
-- [Andrey Helldar](https://github.com/andrey-helldar) Russian
-- [Joris Drenth](https://github.com/jorisdrenth) Dutch
-- [Moayed Alhagy](https://github.com/moayedalhagy) Arabic
-- [Rafael](https://github.com/rjmo) Portuguese
-- [Sadegh Barzegar](https://github.com/sadegh19b) Persian
-
-
-## License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+Derived from Telegraph by Fabio Ivona, def:studio and the upstream contributors. The original [MIT license](LICENSE.md) is retained.

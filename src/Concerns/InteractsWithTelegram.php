@@ -4,12 +4,8 @@
 
 namespace DefStudio\Telegraph\Concerns;
 
-use DefStudio\Telegraph\DTO\Attachment;
-use DefStudio\Telegraph\Jobs\SendRequestToTelegramJob;
 use DefStudio\Telegraph\Models\Concerns\HasCustomUrl;
 use DefStudio\Telegraph\Telegraph;
-use Illuminate\Foundation\Bus\PendingDispatch;
-use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -28,22 +24,7 @@ trait InteractsWithTelegram
 
     protected function sendRequestToTelegram(): Response
     {
-        $asMultipart = $this->files->isNotEmpty();
-
-        $request = $asMultipart
-            ? Http::asMultipart()
-            : Http::asJson();
-
-        /** @var PendingRequest $request */
-        $request = $this->files->reduce(
-            /** @phpstan-ignore-next-line */
-            fn ($request, Attachment $attachment, string $key) => $request->attach(
-                $key,
-                $attachment->contents(),
-                $attachment->filename()
-            ),
-            $request
-        );
+        $request = Http::asJson();
 
         // Apply proxy configuration if set
         if ($proxy = $this->getHttpProxy()) {
@@ -59,32 +40,13 @@ trait InteractsWithTelegram
      */
     protected function prepareData(): array
     {
-        $asMultipart = $this->files->isNotEmpty();
-
         $data = $this->data;
 
         $data = $this->pipeTraits('preprocessData', $data);
         $data = $this->prepareChatData($data);
 
-        if ($asMultipart) {
-            $data = collect($data)
-                ->mapWithKeys(function ($value, $key) {
-                    if (!is_array($value)) {
-                        return [$key => $value];
-                    }
-
-                    return [$key => json_encode($value)];
-                })
-                ->toArray();
-        }
-
         //@phpstan-ignore-next-line
         return $data;
-    }
-
-    protected function dispatchRequestToTelegram(?string $queue = null): PendingDispatch
-    {
-        return SendRequestToTelegramJob::dispatch($this->getApiUrl(), $this->prepareData(), $this->files, $this->getHttpProxy())->onQueue($queue);
     }
 
     public function setBaseUrl(string|null $url): Telegraph
@@ -119,14 +81,6 @@ trait InteractsWithTelegram
         return $this->httpProxy ?? config('telegraph.http_proxy');
     }
 
-    protected function getFilesBaseUrl(): string
-    {
-        /* @phpstan-ignore-next-line */
-        return Str::of($this->baseUrl ?? config('telegraph.telegram_api_url', 'https://api.telegram.org/'))
-            ->rtrim('/')
-            ->append('/file/bot');
-    }
-
     public function getUrl(): string
     {
         $bot = $this->getBot();
@@ -143,17 +97,6 @@ trait InteractsWithTelegram
             ->append('/', $this->endpoint)
             ->when(!empty($data), fn (Stringable $str) => $str->append('?', http_build_query($data)))
             ->toString();
-    }
-
-    public function getFilesUrl(): string
-    {
-        $bot = $this->getBot();
-
-        return $bot instanceof HasCustomUrl
-            ? $bot->getFilesUrl()
-            : Str::of($this->getFilesBaseUrl())
-                ->append($this->getBotToken())
-                ->toString();
     }
 
     public function getApiUrl(): string

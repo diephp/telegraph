@@ -49,7 +49,6 @@ it('fails if exact message sent check is found partially', function () {
     Telegraph::fake();
     $bot = make_bot();
 
-
     Telegraph::chat($bot->chats->first())->message('foo bar baz')->send();
 
     Telegraph::assertSent('baz');

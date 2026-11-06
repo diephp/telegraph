@@ -9,15 +9,10 @@ namespace DefStudio\Telegraph\Models;
 use DefStudio\Telegraph\Concerns\HasStorage;
 use DefStudio\Telegraph\Contracts\Storable;
 use DefStudio\Telegraph\Database\Factories\TelegraphChatFactory;
-use DefStudio\Telegraph\DTO\ChatMember;
 use DefStudio\Telegraph\Exceptions\TelegraphException;
 use DefStudio\Telegraph\Facades\Telegraph as TelegraphFacade;
-use DefStudio\Telegraph\Games\TelegraphGamePayload;
 use DefStudio\Telegraph\Keyboard\Keyboard;
-use DefStudio\Telegraph\Payments\TelegraphInvoicePayload;
 use DefStudio\Telegraph\ScopedPayloads\SetChatMenuButtonPayload;
-use DefStudio\Telegraph\ScopedPayloads\TelegraphPollPayload;
-use DefStudio\Telegraph\ScopedPayloads\TelegraphQuizPayload;
 use DefStudio\Telegraph\Telegraph;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -93,34 +88,6 @@ class TelegraphChat extends Model implements Storable
         return $reply->json('result');
     }
 
-    public function memberCount(): int
-    {
-        $reply = TelegraphFacade::chat($this)->chatMemberCount()->send();
-
-        if ($reply->telegraphError()) {
-            throw TelegraphException::failedToRetrieveChatInfo();
-        }
-
-        /* @phpstan-ignore-next-line */
-        return $reply->json('result');
-    }
-
-    public function memberInfo(string $user_id): null|ChatMember
-    {
-        $reply = TelegraphFacade::chat($this)->chatMember($user_id)->send();
-
-        if ($reply->telegraphError()) {
-            throw TelegraphException::failedToRetrieveChatInfo();
-        }
-
-        if (!$reply->json('result')) {
-            return null;
-        }
-
-        /* @phpstan-ignore-next-line */
-        return ChatMember::fromArray($reply->json('result'));
-    }
-
     public function withEndpoint(string $endpoint): Telegraph
     {
         return TelegraphFacade::chat($this)->withEndpoint($endpoint);
@@ -134,11 +101,6 @@ class TelegraphChat extends Model implements Storable
     public function inThread(int $thread_id): Telegraph
     {
         return TelegraphFacade::chat($this)->inThread($thread_id);
-    }
-
-    public function inBusiness(string $business_connection_id): Telegraph
-    {
-        return TelegraphFacade::chat($this)->inBusiness($business_connection_id);
     }
 
     public function message(string $message): Telegraph
@@ -184,16 +146,6 @@ class TelegraphChat extends Model implements Storable
         return TelegraphFacade::chat($this)->edit($messageId);
     }
 
-    public function editCaption(int $messageId): Telegraph
-    {
-        return TelegraphFacade::chat($this)->editCaption($messageId);
-    }
-
-    public function editMedia(int $messageId): Telegraph
-    {
-        return TelegraphFacade::chat($this)->editMedia($messageId);
-    }
-
     public function deleteMessage(int $messageId): Telegraph
     {
         return TelegraphFacade::chat($this)->deleteMessage($messageId);
@@ -205,19 +157,6 @@ class TelegraphChat extends Model implements Storable
     public function deleteMessages(array $messageIds): Telegraph
     {
         return TelegraphFacade::chat($this)->deleteMessages($messageIds);
-    }
-
-    public function readBusinessMessage(int $messageId): Telegraph
-    {
-        return TelegraphFacade::chat($this)->readBusinessMessage($messageId);
-    }
-
-    /**
-     * @param  array<int>  $messageIds
-     */
-    public function deleteBusinessMessages(array $messageIds): Telegraph
-    {
-        return TelegraphFacade::chat($this)->deleteBusinessMessages($messageIds);
     }
 
     public function pinMessage(int $messageId): Telegraph
@@ -235,79 +174,6 @@ class TelegraphChat extends Model implements Storable
         return TelegraphFacade::chat($this)->unpinAllMessages();
     }
 
-    public function leave(): Telegraph
-    {
-        return TelegraphFacade::chat($this)->leaveChat();
-    }
-
-    public function action(string $action): Telegraph
-    {
-        return TelegraphFacade::chat($this)->chatAction($action);
-    }
-
-    public function document(string $path, string|null $filename = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->document($path, $filename);
-    }
-
-    public function location(float $latitude, float $longitude): Telegraph
-    {
-        return TelegraphFacade::chat($this)->location(latitude: $latitude, longitude: $longitude);
-    }
-
-    public function photo(string $path, string|null $filename = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->photo($path, $filename);
-    }
-
-    /**
-     * @param  array<int|string, array<mixed>>  $media
-     */
-    public function mediaGroup(array $media): Telegraph
-    {
-        return TelegraphFacade::chat($this)->mediaGroup($media);
-    }
-
-    public function sticker(string $path, string|null $filename = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->sticker($path, $filename);
-    }
-
-    public function venue(float $latitude, float $longitude, string $title, string $address): Telegraph
-    {
-        return TelegraphFacade::chat($this)->venue($latitude, $longitude, $title, $address);
-    }
-
-    public function animation(string $path, string|null $filename = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->animation($path, $filename);
-    }
-
-    public function video(string $path, string|null $filename = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->video($path, $filename);
-    }
-
-    public function videoNote(string $path, string|null $filename = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->videoNote($path, $filename);
-    }
-
-    public function audio(string $path, string|null $filename = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->audio($path, $filename);
-    }
-
-    public function voice(string $path, string|null $filename = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->voice($path, $filename);
-    }
-
-    public function contact(string $phoneNumber, string $firstName): Telegraph
-    {
-        return TelegraphFacade::chat($this)->contact($phoneNumber, $firstName);
-    }
-
     public function setBaseUrl(string|null $url): Telegraph
     {
         return TelegraphFacade::chat($this)->setBaseUrl($url);
@@ -316,142 +182,6 @@ class TelegraphChat extends Model implements Storable
     public function setHttpProxy(string|null $proxy): Telegraph
     {
         return TelegraphFacade::chat($this)->setHttpProxy($proxy);
-    }
-
-    public function setTitle(string $title): Telegraph
-    {
-        return TelegraphFacade::chat($this)->setTitle($title);
-    }
-
-    public function setDescription(string $description): Telegraph
-    {
-        return TelegraphFacade::chat($this)->setDescription($description);
-    }
-
-    public function setChatPhoto(string $path): Telegraph
-    {
-        return TelegraphFacade::chat($this)->setChatPhoto($path);
-    }
-
-    /**
-     * @param  array<string, string>  $reaction
-     */
-    public function setMessageReaction(int $messageId, array $reaction, bool $isBig = false): Telegraph
-    {
-        return TelegraphFacade::chat($this)->setMessageReaction($messageId, $reaction, $isBig);
-    }
-
-    public function reactWithEmoji(int $messageId, string $emoji, bool $isBig = false): Telegraph
-    {
-        $reaction = ['type' => 'emoji', 'emoji' => $emoji];
-
-        return $this->setMessageReaction($messageId, $reaction, $isBig);
-    }
-
-    public function reactWithCustomEmoji(int $messageId, string $customEmoji, bool $isBig = false): Telegraph
-    {
-        $reaction = ['type' => 'custom_emoji', 'emoji' => $customEmoji];
-
-        return $this->setMessageReaction($messageId, $reaction, $isBig);
-    }
-
-    public function deleteChatPhoto(): Telegraph
-    {
-        return TelegraphFacade::chat($this)->deleteChatPhoto();
-    }
-
-    public function generatePrimaryInviteLink(): Telegraph
-    {
-        return TelegraphFacade::chat($this)->generateChatPrimaryInviteLink();
-    }
-
-    public function createInviteLink(): Telegraph
-    {
-        return TelegraphFacade::chat($this)->createChatInviteLink();
-    }
-
-    public function editInviteLink(string $link): Telegraph
-    {
-        return TelegraphFacade::chat($this)->editChatInviteLink($link);
-    }
-
-    public function revokeInviteLink(string $link): Telegraph
-    {
-        return TelegraphFacade::chat($this)->revokeChatInviteLink($link);
-    }
-
-    /**
-     * @param  array<int|string, string|bool>  $permissions
-     */
-    public function setPermissions(array $permissions): Telegraph
-    {
-        return TelegraphFacade::chat($this)->setChatPermissions($permissions);
-    }
-
-    public function banMember(string $userId): Telegraph
-    {
-        return TelegraphFacade::chat($this)->banChatMember($userId);
-    }
-
-    public function unbanMember(string $userId, bool $onlyIfBanned = true): Telegraph
-    {
-        return TelegraphFacade::chat($this)->unbanChatMember($userId, $onlyIfBanned);
-    }
-
-    /**
-     * @param  array<int|string, string|bool>  $permissions
-     */
-    public function restrictMember(string $userId, array $permissions): Telegraph
-    {
-        return TelegraphFacade::chat($this)->restrictChatMember($userId, $permissions);
-    }
-
-    /**
-     * @param  array<int|string, string|bool>  $permissions
-     */
-    public function promoteMember(string $userId, array $permissions): Telegraph
-    {
-        return TelegraphFacade::chat($this)->promoteChatMember($userId, $permissions);
-    }
-
-    public function demoteMember(string $userId): Telegraph
-    {
-        return TelegraphFacade::chat($this)->demoteChatMember($userId);
-    }
-
-    public function approveJoinRequest(string $userId): Telegraph
-    {
-        return TelegraphFacade::chat($this)->approveChatJoinRequest($userId);
-    }
-
-    public function declineJoinRequest(string $userId): Telegraph
-    {
-        return TelegraphFacade::chat($this)->declineChatJoinRequest($userId);
-    }
-
-    public function poll(string $question): TelegraphPollPayload
-    {
-        return TelegraphFacade::chat($this)->poll($question);
-    }
-
-    public function quiz(string $question): TelegraphQuizPayload
-    {
-        return TelegraphFacade::chat($this)->quiz($question);
-    }
-
-    public function invoice(string $title): TelegraphInvoicePayload
-    {
-        return TelegraphFacade::chat($this)->invoice($title);
-    }
-
-    public function game(string $shortName): TelegraphGamePayload
-    {
-        return TelegraphFacade::chat($this)->game($shortName);
-    }
-
-    public function dice(string|null $emoji = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->dice($emoji);
     }
 
     public function forwardMessage(TelegraphChat|int $fromChat, int $messageId): Telegraph
@@ -467,31 +197,6 @@ class TelegraphChat extends Model implements Storable
     public function setMenuButton(): SetChatMenuButtonPayload
     {
         return TelegraphFacade::chat($this)->setChatMenuButton();
-    }
-
-    public function createForumTopic(string $name, int|null $iconColor = null, string|null $iconCustomEmojiId = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->createForumTopic($name, $iconColor, $iconCustomEmojiId);
-    }
-
-    public function editForumTopic(int|null $threadId = null, string|null $name = null, string|null $iconCustomEmojiId = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->editForumTopic($threadId, $name, $iconCustomEmojiId);
-    }
-
-    public function closeForumTopic(int|null $threadId = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->closeForumTopic($threadId);
-    }
-
-    public function reopenForumTopic(int|null $threadId = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->reopenForumTopic($threadId);
-    }
-
-    public function deleteForumTopic(int|null $threadId = null): Telegraph
-    {
-        return TelegraphFacade::chat($this)->deleteForumTopic($threadId);
     }
 
     public function copyMessage(TelegraphChat|int $fromChat, int $messageId): Telegraph
